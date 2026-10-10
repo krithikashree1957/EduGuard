@@ -254,3 +254,70 @@ The following should not currently be described as existing features:
 ## Baseline limitations
 
 This is a local verified baseline. It does not establish production readiness, security readiness, scalability, prediction accuracy, or complete intervention-management functionality. Behavior with large datasets, service failure, and duplicate performance records remains unverified.
+
+## Stage 2 support data extension
+
+Stage 2 adds a separate backend model for contextual student-support information without changing the existing student, performance, or risk APIs.
+
+### Support records
+
+The Student Data Service now models three separate historical record types:
+
+- `SupportBarrier`: student-reported educational barriers such as commuting difficulties or limited study resources.
+- `FinancialSupport`: minimal financial-support request information such as support type and workflow status.
+- `WellbeingRequest`: student-initiated requests for a wellbeing-related check-in or assistance.
+
+These records use foreign keys to `students`, timestamps, bounded text fields, and status/severity checks. Sensitive support records are not included in the existing student-list or performance responses. The current application has no authentication or role-based authorization, so these endpoints are not yet access-controlled.
+
+### Stage 2 endpoints
+
+```http
+GET  /api/students/{studentId}/support/barriers
+POST /api/students/{studentId}/support/barriers
+
+GET  /api/students/{studentId}/support/financial
+POST /api/students/{studentId}/support/financial
+
+GET  /api/students/{studentId}/support/wellbeing
+POST /api/students/{studentId}/support/wellbeing
+```
+
+POST requests validate required fields and allowed status/severity values. Unknown students return `404 Not Found`, invalid request bodies return `400 Bad Request`, and duplicate active barriers of the same type return `409 Conflict`.
+
+The existing weighted risk heuristic was not changed in Stage 2. Support data is contextual information for later human-reviewed workflows; it is not automatically treated as proof of dropout risk.
+
+### Database migration status
+
+The review-only migration script is:
+
+```text
+database/migrations/V2__student_support_data.sql
+```
+
+No migration framework is currently configured in the project. The script is prepared for review but has **not** been applied to `eduguard_db`. No live records or tables were modified.
+
+Before applying it, review the foreign keys, indexes, status checks, retention requirements, and authorization plan. The existing application context test uses `spring.jpa.hibernate.ddl-auto=none` for the test run because the new migration is intentionally unapplied; this test does not validate the new tables against the live database.
+
+### Stage 2 verification
+
+The Student Data Service completed:
+
+```text
+Tests run: 5
+Failures: 0
+Errors: 0
+Skipped: 0
+BUILD SUCCESS
+```
+
+This includes the existing context test and focused controller tests for successful creation, validation failures, and separate support collections. The Risk & Recommendation Service's existing context test also passed:
+
+```text
+Tests run: 1
+Failures: 0
+Errors: 0
+Skipped: 0
+BUILD SUCCESS
+```
+
+The new support endpoints were not runtime-tested against the live application because doing so would require applying the approved migration first, and the running services were not restarted.
