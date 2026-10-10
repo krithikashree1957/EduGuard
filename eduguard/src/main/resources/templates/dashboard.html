@@ -22,12 +22,14 @@
 
             <p class="sidebar-heading">MAIN MENU</p>
 
+            
             <nav>
-                <a href="/" class="nav-link active">Dashboard</a>
-                <a href="#students" class="nav-link">Student Risk List</a>
-                <a href="#analytics" class="nav-link">Risk Analytics</a>
-                <a href="#interventions" class="nav-link">Interventions</a>
+                <a th:href="@{/}" class="nav-link active">Dashboard</a>
+                <a th:href="@{/students}" class="nav-link">Student Risk List</a>
+                <a th:href="@{/#analytics}" class="nav-link">Risk Analytics</a>
+                <a th:href="@{/#interventions}" class="nav-link">Interventions</a>
             </nav>
+
 
             <div class="sidebar-footer">
                 <span class="demo-indicator"></span>
