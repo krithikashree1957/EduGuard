@@ -9,6 +9,18 @@ import java.util.List;
 class RecommendationGenerator {
 
     List<Recommendation> generate(RiskAssessment assessment) {
+        return generate(assessment, null);
+    }
+
+    List<Recommendation> generate(
+            RiskAssessment assessment, ModelRiskPrediction modelPrediction) {
+        if (modelPrediction != null) {
+            return generateFromModel(modelPrediction);
+        }
+        return generateFromHeuristic(assessment);
+    }
+
+    private List<Recommendation> generateFromHeuristic(RiskAssessment assessment) {
         List<Recommendation> results = new ArrayList<>();
         for (IndicatorResult indicator : assessment.indicators()) {
             if (!"AVAILABLE".equals(indicator.status())
@@ -37,6 +49,43 @@ class RecommendationGenerator {
         return results;
     }
 
+    private List<Recommendation> generateFromModel(ModelRiskPrediction prediction) {
+        List<Recommendation> results = prediction.contributions().stream()
+                .filter(contribution -> contribution.logOddsContribution() > 0)
+                .limit(3)
+                .map(contribution -> new Recommendation(
+                        action(contribution.feature()),
+                        "The fitted model associates this feature value ("
+                                + format(contribution.value())
+                                + "%) with a +" + formatContribution(
+                                        contribution.logOddsContribution())
+                                + " log-odds contribution relative to a synthetic "
+                                + "training mean of "
+                                + format(contribution.referenceMean())
+                                + "%. This is an association, "
+                                + "not a cause.",
+                        prediction.tier().equals("HIGH") ? "HIGH" : "MEDIUM"))
+                .toList();
+        if (results.isEmpty()) {
+            results = new ArrayList<>(List.of(new Recommendation(
+                    "Continue regular student check-ins and monitor performance trends.",
+                    "No feature has a positive model contribution relative to the "
+                            + "synthetic training-set means.",
+                    "LOW")));
+        } else {
+            results = new ArrayList<>(results);
+        }
+        if ("HIGH".equals(prediction.tier())) {
+            results.add(new Recommendation(
+                    "Review the available indicators with the student and coordinate "
+                            + "appropriate supportive follow-up.",
+                    "The model's synthetic-outcome probability falls in the high band; "
+                            + "staff judgement is required.",
+                    "HIGH"));
+        }
+        return results;
+    }
+
     private static double threshold(String name) {
         return switch (name) {
             case "attendance" -> 75;
@@ -59,5 +108,9 @@ class RecommendationGenerator {
 
     private static String format(double value) {
         return String.valueOf(RiskAssessmentCalculator.round(value));
+    }
+
+    private static String formatContribution(double value) {
+        return String.format(java.util.Locale.ROOT, "%.3f", value);
     }
 }

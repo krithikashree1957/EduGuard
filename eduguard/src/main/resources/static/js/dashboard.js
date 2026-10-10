@@ -127,9 +127,11 @@ document.addEventListener("DOMContentLoaded", function () {
             assessments = results;
             updateSummary(cohortStudents.length);
             renderAssessments(assessments);
-            const available = assessments.filter(item => item.risk).length;
+            const available = assessments.filter(item => item.risk
+                && Number.isFinite(item.risk.modelProbability)).length;
             elements.coverage.textContent =
-                available + " of " + cohortStudents.length + " students have a risk assessment.";
+                available + " of " + cohortStudents.length
+                + " students have a synthetic support-need model estimate.";
             elements.status.textContent = cohortStudents.length
                 ? "Live assessments support educator review; they are not definitive predictions."
                 : "No students are available in this cohort.";
@@ -155,8 +157,9 @@ document.addEventListener("DOMContentLoaded", function () {
         riskCounts.MEDIUM = 0;
         riskCounts.LOW = 0;
         assessments.forEach(function (item) {
-            if (item.risk && Object.hasOwn(riskCounts, item.risk.riskTier)) {
-                riskCounts[item.risk.riskTier]++;
+            const tier = displayedRiskTier(item.risk);
+            if (tier) {
+                riskCounts[tier]++;
             }
         });
 
@@ -191,20 +194,56 @@ document.addEventListener("DOMContentLoaded", function () {
         addCell(row, student.term);
 
         const tierCell = document.createElement("td");
-        const tier = risk && ["HIGH", "MEDIUM", "LOW"].includes(risk.riskTier)
-            ? risk.riskTier : "UNAVAILABLE";
+        const tier = displayedRiskTier(risk) || "UNAVAILABLE";
         tierCell.append(textElement("span", tier, "risk-badge " + tier.toLowerCase() + "-badge"));
+        if (risk && Number.isFinite(risk.modelProbability)) {
+            tierCell.append(textElement(
+                "small",
+                "Model: " + Math.round(risk.modelProbability * 100) + "% synthetic outcome",
+                "risk-model-probability"
+            ));
+        } else if (risk && risk.riskModel === "LOGISTIC_REGRESSION") {
+            tierCell.append(textElement(
+                "small",
+                "Model unavailable · heuristic " + risk.riskTier + " (score " + risk.riskScore + ")",
+                "risk-model-probability"
+            ));
+        }
         row.append(tierCell);
 
         const explanationCell = document.createElement("td");
         if (risk) {
             const details = document.createElement("details");
-            const summary = textElement("summary", "View explanation");
+            const summary = textElement(
+                "summary",
+                risk.riskModel === "LOGISTIC_REGRESSION"
+                    ? "View model explanation" : "View explanation"
+            );
             details.append(summary);
-            const factors = Array.isArray(risk.contributingFactors)
-                ? risk.contributingFactors : [];
             const factorList = document.createElement("ul");
+            const modelFactors = Array.isArray(risk.modelContributingFactors)
+                ? risk.modelContributingFactors
+                    .filter(factor => Number.isFinite(factor.logOddsContribution)
+                        && factor.logOddsContribution > 0)
+                    .map(factor => factor.feature + " (" + factor.value + "%; +"
+                        + factor.logOddsContribution.toFixed(3)
+                        + " log-odds vs synthetic mean " + factor.referenceMean + "%)")
+                : [];
+            const modelAvailable = risk.riskModel === "LOGISTIC_REGRESSION"
+                && Number.isFinite(risk.modelProbability);
+            const factors = modelAvailable
+                ? modelFactors
+                : Array.isArray(risk.contributingFactors) ? risk.contributingFactors : [];
             factors.forEach(factor => factorList.append(textElement("li", factor)));
+            if (modelAvailable && !modelFactors.length) {
+                factorList.append(textElement(
+                    "li",
+                    "No feature has a positive contribution relative to its synthetic training mean."
+                ));
+            }
+            if (risk.modelNote) {
+                factorList.append(textElement("li", risk.modelNote));
+            }
             details.append(factorList);
             explanationCell.append(details);
         } else {
@@ -229,6 +268,21 @@ document.addEventListener("DOMContentLoaded", function () {
         actionCell.append(createButton);
         row.append(actionCell);
         return row;
+    }
+
+    function displayedRiskTier(risk) {
+        if (!risk) {
+            return null;
+        }
+        if (risk.riskModel === "LOGISTIC_REGRESSION") {
+            return ["HIGH", "MEDIUM", "LOW"].includes(risk.modelRiskTier)
+                ? risk.modelRiskTier : null;
+        }
+        if (["HIGH", "MEDIUM", "LOW"].includes(risk.modelRiskTier)) {
+            return risk.modelRiskTier;
+        }
+        return ["HIGH", "MEDIUM", "LOW"].includes(risk.riskTier)
+            ? risk.riskTier : null;
     }
 
     function openCaseForm(student) {

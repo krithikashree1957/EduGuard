@@ -26,8 +26,10 @@ The Risk & Recommendation Service:
 
 - Provides student risk assessments.
 - Calls the Student Data Service over HTTP.
-- Calculates an explainable weighted heuristic.
-- Returns a risk score, risk tier, contributing factors, and recommendations.
+- Retains the explainable weighted heuristic for backwards-compatible fields.
+- Trains a lightweight logistic-regression classifier once from bundled
+  synthetic examples and returns its probability, tier, fitted-feature
+  contributions, and supportive recommendations alongside the heuristic.
 
 It uses port `8081` and does not directly access PostgreSQL.
 
@@ -46,7 +48,8 @@ Frontend files are under `eduguard/src/main/resources`, including:
 - `static/js/student.js`
 - `static/css/dashboard.css`
 
-The frontend calls `/api/students` on the Student Data Service and calls the Risk Service at `http://localhost:8081`.
+The frontend calls `/api/students` on the Student Data Service and uses the
+configured Risk Service URL (default `http://localhost:8081`).
 
 ### Database
 
@@ -127,9 +130,11 @@ GET http://localhost:8080/api/students/{studentId}/performance
 
 Runtime verification for student ID 1 returned HTTP `200 OK`, a risk score of `12.4`, the `LOW` tier, contributing factors, and a recommendation. The risk service successfully obtained data from the Student Data Service. An unknown student returned HTTP `404 Not Found`.
 
-## Risk heuristic
+## Risk heuristic and synthetic ML proof of concept
 
-The current risk implementation is an explainable weighted heuristic. It is **not** a trained machine-learning model.
+The legacy `riskScore`, `riskTier`, `indicators`, and `contributingFactors`
+remain the weighted heuristic response. It is retained for compatibility; it
+is distinct from the logistic-regression prediction.
 
 | Indicator | Weight |
 |---|---:|
@@ -146,7 +151,40 @@ Values are normalized and constrained to 0–100. If some data is unavailable, t
 | 35 to below 60 | `MEDIUM` |
 | Below 35 | `LOW` |
 
-The service describes the result as supporting human review and not being a definitive prediction.
+The added `modelProbability` estimates the synthetic label
+`synthetic_support_need`, not real-world dropout. Training data is bundled at
+`risk-recommendation-service/src/main/resources/ml/risk-training-data.csv` and
+contains only synthetic rows. Its label is `1` when at least two available
+features are below the existing monitoring thresholds (attendance below 75%,
+assessment average below 60%, participation below 40%, or assignment
+completion below 50%); otherwise it is `0`. The current file has 80 unique
+rows, balanced between the two synthetic labels.
+
+The service fits a deterministic Java logistic-regression model once when the
+Risk & Recommendation Service starts. It uses full-batch gradient descent with
+a fixed learning rate and L2 regularization; no model dependency or external
+service is required. Features are the four percentage values
+already retrieved from the Student Data Service: attendance, mean assessment
+percentage, participation, and assignment completion. No missing values are
+imputed: if any feature is unavailable or outside 0–100, model fields are
+returned as unavailable while the existing partial-data heuristic response
+remains available.
+
+`modelRiskTier` uses `HIGH` at probability >= 0.60, `MEDIUM` at >= 0.35, and
+`LOW` below 0.35. `modelContributingFactors` reports each fitted coefficient
+and the coefficient-weighted feature difference from the synthetic training
+mean in log-odds units. This is a model explanation, not evidence of causation.
+Recommendations use positive model contributions to suggest supportive staff
+follow-up and continue to require human judgement.
+
+This model is only a proof of concept trained on a small synthetic dataset. It
+has not been validated on real student outcomes and its probabilities must not
+be interpreted as real dropout probabilities, causal effects, or grounds for
+disciplinary, exclusion, or other high-impact decisions. No real-world
+accuracy claim is made. No held-out metrics are reported: the rows are
+synthetic and their labels are generated directly from the threshold rule, so
+a holdout score would measure reproduction of that artificial rule rather
+than validated outcome prediction.
 
 ## Build and test
 
@@ -168,14 +206,12 @@ cd D:\Eduguard\risk-recommendation-service
 .\mvnw.cmd -B test
 ```
 
-Both package builds completed with `BUILD SUCCESS` and exit code `0`.
-
-Both existing test suites passed:
-
-- Student Data Service: 1 test, 0 failures, 0 errors, 0 skipped.
-- Risk & Recommendation Service: 1 test, 0 failures, 0 errors, 0 skipped.
-
-The current tests are Spring context-load tests. They do not cover all API contracts, risk calculations, service communication, or browser behavior.
+Earlier baseline builds and context-only tests were run before the Stage 8
+ML changes. That historical result does not verify the current source tree.
+The Risk Service suite now includes context, heuristic calculation,
+recommendation, model training/prediction, and mocked inter-service HTTP
+tests. No browser-automation test framework is configured. Run the test
+commands above before release.
 
 ### Start the services manually
 
@@ -210,13 +246,11 @@ The verified baseline established the following:
 
 ## Confirmed issues
 
-- The `/interventions` navigation link returns HTTP `404 Not Found`.
 - The student page displays the student code in both the “Student ID” and “Student” columns because no student-name field currently exists.
-- Automated tests are currently limited to application-context loading.
+- Browser-level dashboard behavior is not covered by an automated frontend test framework.
 
 ## Potential issues
 
-- The Risk Service uses a hard-coded downstream URL: `http://localhost:8080`.
 - The performance response changes shape when attendance or engagement data is missing.
 - Attendance and engagement repositories return `Optional`, but the SQL schema does not enforce one record per student.
 - No authentication or authorization implementation was found.
@@ -245,7 +279,7 @@ The following should not currently be described as existing features:
 - Intervention creation and tracking.
 - Recipient-specific notifications.
 - Email, SMS, or other external integrations.
-- Trained machine-learning prediction, model training, or model evaluation.
+- Real-world validated dropout prediction, training data, or model evaluation.
 - Production deployment.
 - Complete analytics and cohort reporting.
 - Audit history.

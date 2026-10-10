@@ -80,12 +80,39 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!response.ok) {
                 throw new Error(result.detail || result.message || "Risk assessment failed");
             }
-            badge.textContent = result.riskTier;
-            badge.className = "risk-badge " + result.riskTier.toLowerCase();
-            button.textContent = "Score " + result.riskScore;
-            row.querySelector(".risk-details").textContent =
-                result.contributingFactors.join(" ") + " " +
-                result.recommendedInterventions.join(" ");
+            const modelAvailable = ["HIGH", "MEDIUM", "LOW"].includes(result.modelRiskTier)
+                && Number.isFinite(result.modelProbability);
+            const modelExpected = result.riskModel === "LOGISTIC_REGRESSION";
+            const tier = modelAvailable
+                ? result.modelRiskTier
+                : modelExpected ? "Model unavailable" : result.riskTier;
+            badge.textContent = tier;
+            badge.className = "risk-badge "
+                + (["HIGH", "MEDIUM", "LOW"].includes(tier)
+                    ? tier.toLowerCase() : "unavailable");
+            button.textContent = modelAvailable
+                ? "Model " + Math.round(result.modelProbability * 100) + "% · " + tier
+                : modelExpected
+                    ? "Heuristic " + result.riskTier + " · Score " + result.riskScore
+                    : "Score " + result.riskScore;
+            const modelFactors = Array.isArray(result.modelContributingFactors)
+                ? result.modelContributingFactors
+                    .filter(factor => Number.isFinite(factor.logOddsContribution)
+                        && factor.logOddsContribution > 0)
+                    .map(factor => factor.feature + " " + factor.value + "% (model log-odds +"
+                        + factor.logOddsContribution.toFixed(3) + " vs synthetic mean "
+                        + factor.referenceMean + "%)")
+                : [];
+            const explanationFactors = modelAvailable
+                ? (modelFactors.length
+                    ? modelFactors
+                    : ["No feature has a positive contribution relative to its synthetic training mean."])
+                : result.contributingFactors || [];
+            row.querySelector(".risk-details").textContent = [
+                modelAvailable ? result.modelNote : "",
+                ...explanationFactors,
+                ...(result.recommendedInterventions || [])
+            ].filter(Boolean).join(" ");
         } catch (error) {
             badge.textContent = "Unavailable";
             button.textContent = "Assessment unavailable";

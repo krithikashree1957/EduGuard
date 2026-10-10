@@ -49,6 +49,26 @@ class RecommendationGeneratorTest {
         assertTrue(recommendations.get(0).reason().contains("No available"));
     }
 
+    @Test
+    void usesPositiveFittedModelContributionsForSupportiveRecommendations() {
+        ModelRiskPrediction prediction = new ModelRiskPrediction(
+                0.72, "HIGH", List.of(
+                        new FeatureContribution("attendance", 45, -2.0, 70, 0.42),
+                        new FeatureContribution("assessmentPerformance", 50, -1.5, 70, 0.30),
+                        new FeatureContribution("participation", 80, -1.0, 60, -0.20)));
+
+        List<Recommendation> recommendations = generator.generate(
+                new RiskAssessment(40, "MEDIUM", "COMPLETE", 4, 4,
+                        List.of(), List.of()), prediction);
+
+        assertEquals(3, recommendations.size());
+        assertTrue(recommendations.get(0).recommendation()
+                .contains("attendance barriers"));
+        assertTrue(recommendations.get(0).reason().contains("+0.420 log-odds"));
+        assertTrue(recommendations.get(0).reason().contains("not a cause"));
+        assertEquals("HIGH", recommendations.get(0).priority());
+    }
+
     private static IndicatorResult indicator(String name, double performance) {
         return new IndicatorResult(name, performance, 100 - performance,
                 .15, (100 - performance) * .15, "AVAILABLE", "normalized");
