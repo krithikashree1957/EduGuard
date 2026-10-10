@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EduGuard | Student Success Dashboard</title>
+
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+
+<body>
+    <div class="app-container">
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">E</div>
+                <span>EduGuard</span>
+            </div>
+
+            <p class="sidebar-heading">MAIN MENU</p>
+
+            <nav>
+                <a href="/" class="nav-link active">Dashboard</a>
+                <a href="#students" class="nav-link">Student Risk List</a>
+                <a href="#analytics" class="nav-link">Risk Analytics</a>
+                <a href="#interventions" class="nav-link">Interventions</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <span class="demo-indicator"></span>
+                Frontend Demo Mode
+            </div>
+        </aside>
+
+        <!-- Main Dashboard -->
+        <main class="main-content">
+
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">STUDENT SUCCESS PLATFORM</p>
+                    <h1>Dashboard Overview</h1>
+                    <p class="subtitle">
+                        Identify concerns early and support every student.
+                    </p>
+                </div>
+
+                <div class="profile">
+                    <div class="profile-avatar">ED</div>
+                    <div>
+                        <strong>Educator</strong>
+                        <small>Student Support Team</small>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Summary Cards -->
+            <section class="summary-grid">
+                <article class="summary-card">
+                    <p>Total Students</p>
+                    <h2 id="totalStudents">120</h2>
+                    <span>Students in demo data</span>
+                </article>
+
+                <article class="summary-card risk-high">
+                    <p>High Risk</p>
+                    <h2 id="highRiskCount">18</h2>
+                    <span>Requires timely review</span>
+                </article>
+
+                <article class="summary-card risk-medium">
+                    <p>Medium Risk</p>
+                    <h2 id="mediumRiskCount">32</h2>
+                    <span>Monitor and support</span>
+                </article>
+
+                <article class="summary-card risk-low">
+                    <p>Low Risk</p>
+                    <h2 id="lowRiskCount">70</h2>
+                    <span>Continue regular support</span>
+                </article>
+            </section>
+
+            <!-- Risk Analytics -->
+            <section class="content-panel" id="analytics">
+                <div class="section-header">
+                    <div>
+                        <h2>Risk Distribution</h2>
+                        <p>Illustrative distribution using demo values</p>
+                    </div>
+                    <span class="demo-badge">SAMPLE DATA</span>
+                </div>
+
+                <div class="risk-distribution">
+                    <div class="distribution-item">
+                        <div class="distribution-label">
+                            <span class="legend-dot high-dot"></span>
+                            High Risk
+                            <strong>15%</strong>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill high-fill"
+                                 style="width: 15%"></div>
+                        </div>
+                    </div>
+
+                    <div class="distribution-item">
+                        <div class="distribution-label">
+                            <span class="legend-dot medium-dot"></span>
+                            Medium Risk
+                            <strong>27%</strong>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill medium-fill"
+                                 style="width: 27%"></div>
+                        </div>
+                    </div>
+
+                    <div class="distribution-item">
+                        <div class="distribution-label">
+                            <span class="legend-dot low-dot"></span>
+                            Low Risk
+                            <strong>58%</strong>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill low-fill"
+                                 style="width: 58%"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Students Requiring Attention -->
+            <section class="content-panel" id="students">
+                <div class="section-header">
+                    <div>
+                        <h2>Students Requiring Attention</h2>
+                        <p>Example students for the frontend demonstration</p>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th>Class / Section</th>
+                                <th>Risk Level</th>
+                                <th>Contributing Factors</th>
+                                <th>Suggested Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>STU001</td>
+                                <td><strong>Arun Kumar</strong></td>
+                                <td>Class 10 - A</td>
+                                <td><span class="risk-badge high-badge">High</span></td>
+                                <td>Low attendance</td>
+                                <td>Attendance follow-up</td>
+                            </tr>
+
+                            <tr>
+                                <td>STU002</td>
+                                <td><strong>Priya S</strong></td>
+                                <td>Class 10 - B</td>
+                                <td><span class="risk-badge medium-badge">Medium</span></td>
+                                <td>Declining assessment scores</td>
+                                <td>Academic support</td>
+                            </tr>
+
+                            <tr>
+                                <td>STU003</td>
+                                <td><strong>Kavin R</strong></td>
+                                <td>Class 9 - A</td>
+                                <td><span class="risk-badge high-badge">High</span></td>
+                                <td>Repeated absences</td>
+                                <td>Support meeting</td>
+                            </tr>
+
+                            <tr>
+                                <td>STU004</td>
+                                <td><strong>Meena D</strong></td>
+                                <td>Class 9 - B</td>
+                                <td><span class="risk-badge low-badge">Low</span></td>
+                                <td>No major concerns in demo</td>
+                                <td>Routine progress review</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="demo-notice">
+                    All student names, counts, risk levels and factors above
+                    are simulated examples, not real student assessments.
+                </p>
+            </section>
+
+            <!-- Intervention Summary -->
+            <section class="content-panel" id="interventions">
+                <div class="section-header">
+                    <div>
+                        <h2>Intervention Tracking</h2>
+                        <p>Example support activity statuses</p>
+                    </div>
+                </div>
+
+                <div class="intervention-grid">
+                    <article class="intervention-card">
+                        <span class="status-badge planned">Planned</span>
+                        <h3>Parent or guardian meeting</h3>
+                        <p>STU001 · Attendance follow-up</p>
+                    </article>
+
+                    <article class="intervention-card">
+                        <span class="status-badge in-progress">In Progress</span>
+                        <h3>Academic support session</h3>
+                        <p>STU002 · Learning support</p>
+                    </article>
+
+                    <article class="intervention-card">
+                        <span class="status-badge completed">Completed</span>
+                        <h3>Student support meeting</h3>
+                        <p>STU004 · Routine review</p>
+                    </article>
+                </div>
+            </section>
+
+            <footer class="page-footer">
+                EduGuard · Student Dropout Risk &amp; Intervention Management
+            </footer>
+
+        </main>
+    </div>
+</body>
+</html>
