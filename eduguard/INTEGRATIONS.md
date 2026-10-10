@@ -8,11 +8,12 @@ extension point. Academic and wellbeing adapters normalize provider responses
 into `SupportResource` records; HTTP DTOs remain separate. No database,
 student, risk, intervention, notification, or dashboard types are used.
 
-Both built-in adapters default to clearly labelled local mock fixtures. No real
-external provider is currently connected. Mock URLs use the reserved
-`example.invalid` domain and must not be treated as actual services. Wellbeing
-content is general information only, not clinical advice, diagnosis, or an
-assessment.
+Both built-in adapters default to clearly labelled local mock fixtures. No
+external provider is connected. The academic fixture links to Khan Academy's
+public learning materials; it is not a tutoring referral. The wellbeing fixture
+links to NHS mental health information for young people. It is general
+information, not counselling, diagnosis, or clinical care, and describes UK
+services.
 
 ## Endpoints
 
@@ -26,7 +27,7 @@ locally to normalized provider results. Valid searches without matches return
 an empty `resources` array. Example:
 
 ```http
-GET /api/integrations/resources/academic?category=tutoring&pageSize=10
+GET /api/integrations/resources/academic?category=learning-resources&pageSize=10
 ```
 
 Example response:
@@ -38,11 +39,11 @@ Example response:
   "resources": [
     {
       "resourceId": "mock-academic-1",
-      "title": "Academic tutoring example (mock)",
-      "description": "Demonstration fixture only; replace with a verified tutoring provider.",
-      "category": "tutoring",
-      "provider": "EduGuard mock dataset",
-      "url": "https://example.invalid/academic/tutoring",
+      "title": "Khan Academy free learning resources (mock)",
+      "description": "Public educational lessons and practice. This is a learning resource, not a tutoring referral.",
+      "category": "learning-resources",
+      "provider": "Khan Academy",
+      "url": "https://www.khanacademy.org/",
       "source": "MOCK"
     }
   ]

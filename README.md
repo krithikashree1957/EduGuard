@@ -302,6 +302,10 @@ Set `DB_PASSWORD` in your local environment. Never commit real credentials to Gi
 
 The current configuration does not automatically apply migrations through Flyway or Liquibase, so the database setup scripts must be applied manually.
 
+The Student Data Service context smoke test uses an isolated in-memory H2 database, so
+`mvnw test` does not require the local PostgreSQL password. Production and manual
+integration runs continue to use the PostgreSQL configuration above.
+
 ### Step 3: Start the Student Data Service
 
 ```powershell

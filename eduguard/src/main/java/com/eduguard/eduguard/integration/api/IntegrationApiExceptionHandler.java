@@ -1,7 +1,6 @@
 package com.eduguard.eduguard.integration.api;
 
 import com.eduguard.eduguard.integration.adapter.IntegrationCallException;
-import com.eduguard.eduguard.integration.adapter.IntegrationFailure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

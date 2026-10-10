@@ -165,23 +165,23 @@ class LogisticRegressionRiskModel {
             throw new IllegalArgumentException("Training data source is required");
         }
         List<TrainingExample> examples = new ArrayList<>();
+        boolean headerFound = false;
         try (BufferedReader reader = source instanceof BufferedReader bufferedReader
                 ? bufferedReader : new BufferedReader(source)) {
             String line;
-            boolean header = true;
             int lineNumber = 0;
             while ((line = reader.readLine()) != null) {
                 lineNumber++;
                 if (line.isBlank() || line.startsWith("#")) {
                     continue;
                 }
-                if (header) {
+                if (!headerFound) {
                     if (!"attendance,assessment,participation,assignments,label"
                             .equals(line.trim())) {
                         throw new IllegalStateException(
                                 "Training data has an unexpected CSV header");
                     }
-                    header = false;
+                    headerFound = true;
                     continue;
                 }
 
@@ -220,7 +220,7 @@ class LogisticRegressionRiskModel {
             throw new IllegalStateException(
                     "Unable to read logistic-regression training data", exception);
         }
-        if (header) {
+        if (!headerFound) {
             throw new IllegalStateException("Training data header is missing");
         }
         return List.copyOf(examples);

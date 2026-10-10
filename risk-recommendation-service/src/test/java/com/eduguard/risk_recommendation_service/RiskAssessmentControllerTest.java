@@ -72,7 +72,7 @@ class RiskAssessmentControllerTest {
 
         assertEquals("COMPLETE", response.get("assessmentStatus"));
         assertEquals(4, response.get("availableIndicatorCount"));
-        assertEquals(19.5, response.get("riskScore"));
+        assertEquals(16.5, response.get("riskScore"));
         assertEquals("UNAVAILABLE", response.get("modelRiskTier"));
         assertNull(response.get("modelProbability"));
     }

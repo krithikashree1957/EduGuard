@@ -126,22 +126,22 @@ public class ConfigurableResourceIntegrationAdapter implements ResourceIntegrati
     public static List<SupportResource> academicMockResources() {
         return List.of(new SupportResource(
                 "mock-academic-1",
-                "Academic tutoring example (mock)",
-                "Demonstration fixture only; replace with a verified tutoring provider.",
-                "tutoring",
-                "EduGuard mock dataset",
-                "https://example.invalid/academic/tutoring",
+                "Khan Academy free learning resources (mock)",
+                "Public educational lessons and practice. This is a learning resource, not a tutoring referral.",
+                "learning-resources",
+                "Khan Academy",
+                "https://www.khanacademy.org/",
                 ResourceSource.MOCK));
     }
 
     public static List<SupportResource> wellbeingMockResources() {
         return List.of(new SupportResource(
                 "mock-wellbeing-1",
-                "General wellbeing information example (mock)",
-                "Demonstration fixture only; general educational information, not counselling or clinical advice.",
+                "NHS mental health information for young people (mock)",
+                "General information for children, teenagers, young adults, students, and parents. This is not counselling, diagnosis, or clinical care; the NHS page describes UK services.",
                 "wellbeing-education",
-                "EduGuard mock dataset",
-                "https://example.invalid/wellbeing/information",
+                "NHS",
+                "https://www.nhs.uk/mental-health/children-and-young-adults/",
                 ResourceSource.MOCK));
     }
 }

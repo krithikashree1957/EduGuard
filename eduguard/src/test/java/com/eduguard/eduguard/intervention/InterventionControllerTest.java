@@ -66,4 +66,48 @@ class InterventionControllerTest {
         verify(service).search(eq(null), eq(CaseStatus.OPEN),
                 eq(CasePriority.HIGH), eq(null), eq(null), any());
     }
+
+    @Test
+    void listsSavedCasesAsPagedJsonAndSupportsCaseRoutes() throws Exception {
+        CaseResponse first = caseResponse(8L, "STU-008");
+        CaseResponse second = caseResponse(7L, "STU-007");
+        when(service.search(isNull(), isNull(), isNull(), isNull(), isNull(), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(
+                        java.util.List.of(first, second),
+                        org.springframework.data.domain.PageRequest.of(0, 20), 2));
+        when(service.get(8L)).thenReturn(first);
+        when(service.update(eq(8L), any())).thenReturn(first);
+        when(service.activities(8L)).thenReturn(java.util.List.of(
+                new ActivityResponse(1L, 8L, "CREATED", "Case created",
+                        null, CaseStatus.OPEN, "staff-1", null)));
+
+        mvc.perform(get("/api/interventions").param("page", "0").param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].studentId").value(8))
+                .andExpect(jsonPath("$.content[0].category").value("ACADEMIC"))
+                .andExpect(jsonPath("$.content[0].priority").value("HIGH"))
+                .andExpect(jsonPath("$.content[0].status").value("OPEN"))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.totalElements").value(2));
+
+        mvc.perform(get("/api/interventions/8"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.caseId").value(8));
+        mvc.perform(patch("/api/interventions/8")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\":\"Updated details\"}"))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/interventions/8/activities"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].activityType").value("CREATED"));
+    }
+
+    private static CaseResponse caseResponse(Long id, String studentCode) {
+        return new CaseResponse(id, id, "Study plan for " + studentCode,
+                "Needs support", CaseCategory.ACADEMIC, CasePriority.HIGH,
+                CaseStatus.OPEN, "staff-1", java.time.LocalDate.of(2026, 10, 20),
+                null, java.time.LocalDateTime.parse("2026-10-10T10:00:00"),
+                java.time.LocalDateTime.parse("2026-10-10T10:00:00"));
+    }
 }

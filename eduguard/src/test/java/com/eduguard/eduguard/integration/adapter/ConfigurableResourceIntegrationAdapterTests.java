@@ -10,6 +10,7 @@ import com.eduguard.eduguard.integration.model.SupportResource;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.net.URI;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -32,7 +33,12 @@ class ConfigurableResourceIntegrationAdapterTests {
         assertEquals(ResourceSource.MOCK, academicResponse.resources().getFirst().source());
         assertEquals(ResourceSource.MOCK, wellbeingResponse.source());
         assertEquals(ResourceSource.MOCK, wellbeingResponse.resources().getFirst().source());
-        assertEquals("EduGuard mock dataset", wellbeingResponse.resources().getFirst().provider());
+        assertEquals("Khan Academy", academicResponse.resources().getFirst().provider());
+        assertEquals("NHS", wellbeingResponse.resources().getFirst().provider());
+        assertEquals("www.khanacademy.org", URI.create(
+                academicResponse.resources().getFirst().url()).getHost());
+        assertEquals("www.nhs.uk", URI.create(
+                wellbeingResponse.resources().getFirst().url()).getHost());
         assertEquals(0, externalClient.fetchCount);
     }
 

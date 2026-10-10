@@ -35,7 +35,7 @@ class RiskAssessmentCalculator {
 
         if (availableWeight == 0) {
             throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY,
+                    org.springframework.http.HttpStatus.UNPROCESSABLE_CONTENT,
                     "No usable performance data is available for risk assessment.");
         }
 
