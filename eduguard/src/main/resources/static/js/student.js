@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const tableBody = document.getElementById("studentTableBody");
     const studentCount = document.getElementById("studentCount");
     const emptyMessage = document.getElementById("emptyMessage");
+    const riskServiceUrl = document.querySelector("[data-risk-service-url]")?.dataset.riskServiceUrl
+        || "http://localhost:8081";
 
     // Stop safely if this script is loaded on another page.
     if (
@@ -69,7 +71,11 @@ document.addEventListener("DOMContentLoaded", function () {
         button.disabled = true;
 
         try {
-            const response = await fetch("http://localhost:8081/api/risk/students/" + studentId);
+            const url = new URL(
+                "/api/risk/students/" + encodeURIComponent(studentId),
+                riskServiceUrl
+            );
+            const response = await fetch(url);
             const result = await response.json();
             if (!response.ok) {
                 throw new Error(result.detail || result.message || "Risk assessment failed");

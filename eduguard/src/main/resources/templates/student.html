@@ -17,7 +17,7 @@
         <nav>
             <a href="/">Dashboard</a>
             <a href="/students" class="active">Students</a>
-            <a href="/interventions">Interventions</a>
+            <a href="/#interventions">Interventions</a>
         </nav>
 
         <div class="sidebar-footer">
@@ -25,7 +25,7 @@
         </div>
     </aside>
 
-    <main class="main-content">
+    <main class="main-content" th:attr="data-risk-service-url=${riskServiceBaseUrl}">
 
         <header class="page-header">
             <div>

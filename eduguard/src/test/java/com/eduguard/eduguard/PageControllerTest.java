@@ -26,6 +26,7 @@ class PageControllerTest {
     void studentPageRemainsAvailable() throws Exception {
         mockMvc.perform(get("/students"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("student"));
+                .andExpect(view().name("student"))
+                .andExpect(model().attribute("riskServiceBaseUrl", "http://localhost:8081"));
     }
 }

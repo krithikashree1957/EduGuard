@@ -381,3 +381,77 @@ database/migrations/V4__notification_management.sql
 ```
 
 Review and apply V2, V3, and V4 manually and in order in a controlled environment; no migration was applied to `eduguard_db`. Stage 5 does not modify the dashboard, call the risk service, depend on Stage 4 classes, or send automatic reminders. Authentication and recipient ownership are not enforced by the current application, so a supplied recipient reference does not prove access authorization.
+
+## Stage 8 security, tests, and integration audit
+
+### Services and runtime configuration
+
+The Student Data Service runs on port `8080` and requires PostgreSQL. Set
+`DB_PASSWORD` in the process environment; the repository does not provide a
+database-password fallback. Its default URL is
+`jdbc:postgresql://localhost:5432/eduguard_db`, and its current configured
+database username is `postgres`. Hibernate schema validation is enabled for
+normal application startup.
+
+Start the Student Data Service before the Risk & Recommendation Service. The
+risk service runs on port `8081` and fetches
+`/api/students/{studentId}/performance` over HTTP. Configure its downstream
+base URL with `EDUGUARD_STUDENT_SERVICE_BASE_URL`; the legacy
+`student.service.base-url` property remains a fallback. Configure the URL
+published to both frontend pages with `EDUGUARD_RISK_SERVICE_BASE_URL`.
+
+Notification email delivery defaults to `mock`, and academic/wellbeing
+integrations default to `mock`. Automated tests use mock delivery and mock
+provider clients; they do not send email or contact real providers. External
+provider URLs and API keys are configured with `EDUGUARD_ACADEMIC_BASE_URL`,
+`EDUGUARD_ACADEMIC_API_KEY`, `EDUGUARD_WELLBEING_BASE_URL`, and
+`EDUGUARD_WELLBEING_API_KEY`. See [INTEGRATIONS.md](./eduguard/INTEGRATIONS.md)
+for provider contracts and per-provider timeouts. The optional
+`EDUGUARD_NOTIFICATION_MAX_ATTEMPTS` setting defaults to `3`; SMTP credentials
+are required only when explicitly switching email delivery to SMTP mode, as
+documented in Stage 5 above.
+
+### Database setup
+
+Review `database/eduguard_setup.sql` for the base student/performance schema
+and fictional sample data. Review and apply V2, V3, then V4 manually, only
+after confirming the target database and migration contents. The application
+does not run migrations automatically; tests and documentation in this
+repository did not apply migrations or alter database records.
+
+### Test execution and current coverage
+
+Run each Maven project independently:
+
+```powershell
+cd D:\Eduguard\eduguard
+.\mvnw.cmd -B test
+
+cd D:\Eduguard\risk-recommendation-service
+.\mvnw.cmd -B test
+```
+
+The Student Data Service context-load test requires a working PostgreSQL
+connection even though it disables Hibernate schema validation for that test.
+The risk service has no database dependency. Controller/service tests use
+mocks, and external-integration tests use local mock clients.
+
+The current test coverage includes student/performance response contracts and
+missing-data behavior, risk calculation and student-service HTTP handling,
+support validation and duplicate barriers, intervention creation/status and
+follow-up behavior, notification mock delivery/idempotency, external-resource
+query/health/failure behavior, and dashboard page routing. There is no
+configured frontend/browser automation framework. Database-backed workflows
+and full browser-to-database end-to-end runs remain dependent on a configured
+PostgreSQL instance and manually applied migrations.
+
+### Security limitations
+
+No authentication or authorization is implemented. Student performance,
+support, intervention, notification, and risk endpoints do not verify an
+authenticated user or record ownership. In particular, notification reads
+accept a recipient reference without proving recipient ownership. Do not
+expose these services to untrusted networks or use them with real student
+records until identity integration and server-side role/record authorization
+are implemented and verified. The risk-service CORS allow-list is not an
+authorization control.

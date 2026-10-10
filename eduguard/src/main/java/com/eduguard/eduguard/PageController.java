@@ -21,7 +21,8 @@ public class PageController {
     }
 
     @GetMapping("/students")
-    public String students() {
+    public String students(Model model) {
+        model.addAttribute("riskServiceBaseUrl", riskServiceBaseUrl);
         return "student";
     }
 }

@@ -27,6 +27,7 @@ so the page does not show notifications or attempt delivery.
 
 Configure `eduguard.risk-service.base-url` or the
 `EDUGUARD_RISK_SERVICE_BASE_URL` environment variable for the risk service URL.
+Both the dashboard and student risk list use this configured URL.
 The default is `http://localhost:8081`. The risk service must allow browser
 requests from the Student Data Service origin.
 
