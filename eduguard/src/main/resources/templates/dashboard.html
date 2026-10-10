@@ -28,17 +28,18 @@
                 <a th:href="@{/students}" class="nav-link">Student Risk List</a>
                 <a th:href="@{/#analytics}" class="nav-link">Risk Analytics</a>
                 <a th:href="@{/#interventions}" class="nav-link">Interventions</a>
+                <a th:href="@{/#resources}" class="nav-link">Support Resources</a>
             </nav>
 
 
             <div class="sidebar-footer">
                 <span class="demo-indicator"></span>
-                Frontend Demo Mode
+                Live service data
             </div>
         </aside>
 
         <!-- Main Dashboard -->
-        <main class="main-content">
+        <main class="main-content" th:attr="data-risk-service-url=${riskServiceBaseUrl}">
 
             <header class="topbar">
                 <div>
@@ -62,25 +63,25 @@
             <section class="summary-grid">
                 <article class="summary-card">
                     <p>Total Students</p>
-                    <h2 id="totalStudents">120</h2>
+                    <h2 id="totalStudents">0</h2>
                     <span>Live student records</span>
                 </article>
 
                 <article class="summary-card risk-high">
                     <p>High Risk</p>
-                    <h2 id="highRiskCount">18</h2>
+                    <h2 id="highRiskCount">0</h2>
                     <span>Requires timely review</span>
                 </article>
 
                 <article class="summary-card risk-medium">
                     <p>Medium Risk</p>
-                    <h2 id="mediumRiskCount">32</h2>
+                    <h2 id="mediumRiskCount">0</h2>
                     <span>Monitor and support</span>
                 </article>
 
                 <article class="summary-card risk-low">
                     <p>Low Risk</p>
-                    <h2 id="lowRiskCount">70</h2>
+                    <h2 id="lowRiskCount">0</h2>
                     <span>Continue regular support</span>
                 </article>
             </section>
@@ -134,12 +135,40 @@
                 </div>
             </section>
 
+            <section class="content-panel dashboard-filters" aria-labelledby="cohort-heading">
+                <div class="section-header">
+                    <div>
+                        <h2 id="cohort-heading">Choose a cohort</h2>
+                        <p>Risk summaries update from the selected students and their assessments.</p>
+                    </div>
+                </div>
+                <div class="filter-controls">
+                    <div class="filter-field">
+                        <label for="dashboardClassFilter">Class</label>
+                        <select id="dashboardClassFilter">
+                            <option value="">All classes</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label for="dashboardTermFilter">Term</label>
+                        <select id="dashboardTermFilter">
+                            <option value="">All terms</option>
+                        </select>
+                    </div>
+                    <div class="filter-field filter-search">
+                        <label for="dashboardSearch">Find student</label>
+                        <input id="dashboardSearch" type="search" maxlength="80"
+                               placeholder="Search by student code">
+                    </div>
+                </div>
+            </section>
+
             <!-- Students Requiring Attention -->
             <section class="content-panel" id="students">
                 <div class="section-header">
                     <div>
                         <h2>Students Requiring Attention</h2>
-                        <p>Students assessed by the risk service</p>
+                        <p id="assessmentCoverage">Loading cohort assessments...</p>
                     </div>
                 </div>
 
@@ -147,12 +176,13 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Student ID</th>
-                                <th>Student Name</th>
-                                <th>Class / Section</th>
-                                <th>Risk Level</th>
-                                <th>Contributing Factors</th>
-                                <th>Suggested Action</th>
+                                <th>Student code</th>
+                                <th>Class</th>
+                                <th>Term</th>
+                                <th>Risk tier</th>
+                                <th>Explanation</th>
+                                <th>Suggested support</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
 
@@ -160,37 +190,121 @@
                     </table>
                 </div>
 
-                <p class="demo-notice" id="dashboardStatus">Loading live assessments...</p>
+                <p class="dashboard-empty" id="dashboardEmpty" hidden>
+                    No students match this cohort and search.
+                </p>
+                <p class="demo-notice" id="dashboardStatus" role="status" aria-live="polite">
+                    Loading live assessments...
+                </p>
+                <p class="disclaimer">
+                    Risk tiers are explainable heuristic assessments, not definitive predictions.
+                    Review the available evidence before deciding on support.
+                </p>
+            </section>
+
+            <section class="content-panel" id="case-form-panel" hidden>
+                <div class="section-header">
+                    <div>
+                        <h2>Record a support case</h2>
+                        <p id="caseStudentLabel"></p>
+                    </div>
+                    <button class="secondary-button" id="cancelCaseButton" type="button">Cancel</button>
+                </div>
+                <form id="caseForm" class="case-form">
+                    <input id="caseStudentId" name="studentId" type="hidden">
+                    <div class="filter-field">
+                        <label for="caseTitle">Case title</label>
+                        <input id="caseTitle" name="title" type="text" maxlength="150" required>
+                    </div>
+                    <div class="filter-field">
+                        <label for="caseDescription">Support notes</label>
+                        <textarea id="caseDescription" name="description" maxlength="2000"
+                                  rows="3" required></textarea>
+                    </div>
+                    <div class="filter-field">
+                        <label for="caseCategory">Category</label>
+                        <select id="caseCategory" name="category" required>
+                            <option value="ACADEMIC">Academic</option>
+                            <option value="ATTENDANCE">Attendance</option>
+                            <option value="ENGAGEMENT">Engagement</option>
+                            <option value="FINANCIAL">Financial</option>
+                            <option value="WELLBEING">Wellbeing</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label for="casePriority">Priority</label>
+                        <select id="casePriority" name="priority" required>
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM" selected>Medium</option>
+                            <option value="HIGH">High</option>
+                            <option value="URGENT">Urgent</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label for="caseAssignedStaff">Assigned staff ID (optional)</label>
+                        <input id="caseAssignedStaff" name="assignedStaffId" type="text" maxlength="100">
+                    </div>
+                    <div class="filter-field">
+                        <label for="caseFollowUpDate">Follow-up date (optional)</label>
+                        <input id="caseFollowUpDate" name="followUpDate" type="date">
+                    </div>
+                    <button class="primary-button" id="saveCaseButton" type="submit">Save support case</button>
+                    <p class="form-message" id="caseFormMessage" role="status" aria-live="polite"></p>
+                </form>
             </section>
 
             <!-- Intervention Summary -->
             <section class="content-panel" id="interventions">
                 <div class="section-header">
                     <div>
-                        <h2>Intervention Tracking</h2>
-                        <p>Example support activity statuses</p>
+                        <h2>Intervention and follow-up tracking</h2>
+                        <p id="caseLoadStatus">Loading saved support cases...</p>
+                    </div>
+                    <button class="secondary-button" id="refreshCasesButton" type="button">Refresh cases</button>
+                </div>
+
+                <div class="case-summary" id="caseSummary" aria-live="polite"></div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Case</th>
+                                <th>Student code</th>
+                                <th>Category</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Follow-up</th>
+                            </tr>
+                        </thead>
+                        <tbody id="interventionCases"></tbody>
+                    </table>
+                </div>
+                <p class="dashboard-empty" id="casesEmpty" hidden>No saved support cases yet.</p>
+            </section>
+
+            <section class="content-panel" id="resources">
+                <div class="section-header">
+                    <div>
+                        <h2>Support resources</h2>
+                        <p>Optional academic and general wellbeing information.</p>
                     </div>
                 </div>
-
-                <div class="intervention-grid">
-                    <article class="intervention-card">
-                        <span class="status-badge planned">Planned</span>
-                        <h3>Parent or guardian meeting</h3>
-                        <p>STU001 · Attendance follow-up</p>
-                    </article>
-
-                    <article class="intervention-card">
-                        <span class="status-badge in-progress">In Progress</span>
-                        <h3>Academic support session</h3>
-                        <p>STU002 · Learning support</p>
-                    </article>
-
-                    <article class="intervention-card">
-                        <span class="status-badge completed">Completed</span>
-                        <h3>Student support meeting</h3>
-                        <p>STU004 · Routine review</p>
-                    </article>
+                <div class="resource-columns">
+                    <section aria-labelledby="academic-resources-heading">
+                        <h3 id="academic-resources-heading">Academic resources</h3>
+                        <p class="resource-status" id="academicResourceStatus">Loading resources...</p>
+                        <ul class="resource-list" id="academicResources"></ul>
+                    </section>
+                    <section aria-labelledby="wellbeing-resources-heading">
+                        <h3 id="wellbeing-resources-heading">Wellbeing resources</h3>
+                        <p class="resource-status" id="wellbeingResourceStatus">Loading resources...</p>
+                        <ul class="resource-list" id="wellbeingResources"></ul>
+                    </section>
                 </div>
+                <p class="disclaimer">
+                    Resources are informational only. Wellbeing resources do not provide diagnosis or clinical assessment.
+                </p>
             </section>
 
             <footer class="page-footer">
@@ -202,5 +316,5 @@
 
     <script th:src="@{/js/dashboard.js}"></script>
 
-    </body>
+</body>
 </html>

@@ -697,3 +697,235 @@ tbody tr:last-child td {
     background: var(--low-bg);
     color: var(--low);
 }
+
+/* ===== Live Dashboard Integration ===== */
+
+.filter-controls,
+.case-form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.filter-field label {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.filter-field input,
+.filter-field select,
+.filter-field textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: var(--white);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+}
+
+.filter-field textarea {
+    resize: vertical;
+}
+
+.filter-field input:focus,
+.filter-field select:focus,
+.filter-field textarea:focus {
+    outline: 2px solid #93c5fd;
+    outline-offset: 1px;
+}
+
+.filter-search {
+    grid-column: span 1;
+}
+
+.primary-button,
+.secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    min-height: 38px;
+    padding: 9px 13px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.primary-button {
+    background: var(--blue);
+    color: var(--white);
+}
+
+.primary-button:hover {
+    background: #1d4ed8;
+}
+
+.primary-button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.secondary-button {
+    border-color: var(--border);
+    background: var(--white);
+    color: var(--text);
+}
+
+.secondary-button:hover {
+    background: #f8fafc;
+}
+
+tbody details summary {
+    color: var(--blue);
+    cursor: pointer;
+    font-weight: 650;
+}
+
+tbody details ul {
+    min-width: 180px;
+    padding-left: 18px;
+    color: var(--muted);
+    white-space: normal;
+}
+
+.dashboard-empty {
+    padding: 18px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.disclaimer {
+    margin: 16px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.case-form > .filter-field:nth-child(2) {
+    grid-column: span 2;
+}
+
+.case-form > .primary-button,
+.case-form > .form-message {
+    align-self: end;
+}
+
+.form-message {
+    min-height: 18px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.case-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.status-badge.open {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-badge.in-progress {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.on-hold {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.status-badge.closed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.resource-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.resource-columns h3 {
+    margin: 0 0 10px;
+}
+
+.resource-status {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.resource-list {
+    display: grid;
+    gap: 12px;
+    padding: 0;
+    list-style: none;
+}
+
+.resource-list li {
+    padding: 13px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.resource-list a {
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.resource-list p {
+    margin: 7px 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.resource-source {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+@media (max-width: 900px) {
+    .filter-controls,
+    .case-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .resource-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .filter-controls,
+    .case-form {
+        grid-template-columns: 1fr;
+    }
+
+    .case-form > .filter-field:nth-child(2) {
+        grid-column: auto;
+    }
+
+    .case-form > .primary-button,
+    .case-form > .form-message {
+        align-self: auto;
+    }
+}
