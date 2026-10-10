@@ -321,3 +321,32 @@ BUILD SUCCESS
 ```
 
 The new support endpoints were not runtime-tested against the live application because doing so would require applying the approved migration first, and the running services were not restarted.
+
+## Stage 4 intervention case management
+
+Stage 4 adds an independent intervention-case module to the Student Data Service. It stores only a student ID and does not copy student personal information.
+
+### Case endpoints
+
+```http
+POST  /api/interventions
+GET   /api/interventions
+GET   /api/interventions/{caseId}
+GET   /api/interventions/student/{studentId}
+PATCH /api/interventions/{caseId}
+GET   /api/interventions/{caseId}/activities
+GET   /api/interventions/follow-ups/due
+GET   /api/interventions/follow-ups/overdue
+```
+
+Case searches support pagination and filtering by student, status, priority, category, and assigned staff identifier. Results use stable `updatedAt` and `caseId` ordering. Case updates enforce the permitted status transitions and require a resolution summary before closing. Case activity history is append-only through the API and is returned read-only.
+
+The Stage 4 migration is:
+
+```text
+database/migrations/V3__intervention_case_management.sql
+```
+
+No automatic migration framework is configured. Review and apply V2 before V3, manually and in a controlled environment; neither migration has been applied to `eduguard_db` by this implementation. The application remains configured with `spring.jpa.hibernate.ddl-auto=validate`.
+
+Stage 4 does not call the risk service, create cases automatically from risk scores, send notifications, or modify the dashboard. Authentication and staff authorization are not enforced by the current application.
