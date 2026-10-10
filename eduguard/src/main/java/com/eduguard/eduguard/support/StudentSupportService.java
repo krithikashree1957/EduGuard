@@ -7,7 +7,9 @@ import com.eduguard.eduguard.support.SupportRequests.FinancialSupportRequest;
 import com.eduguard.eduguard.support.SupportRequests.FinancialSupportResponse;
 import com.eduguard.eduguard.support.SupportRequests.WellbeingRequestPayload;
 import com.eduguard.eduguard.support.SupportRequests.WellbeingResponse;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -51,9 +53,18 @@ public class StudentSupportService {
                     HttpStatus.CONFLICT,
                     "An active barrier of this type already exists");
         }
-        return toResponse(barrierRepository.save(new SupportBarrier(
-                studentId, request.barrierType(), request.description(),
-                request.severity())));
+        try {
+            return toResponse(barrierRepository.saveAndFlush(new SupportBarrier(
+                    studentId, request.barrierType(), request.description(),
+                    request.severity())));
+        } catch (DataIntegrityViolationException exception) {
+            if (isActiveBarrierUniqueViolation(exception)) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "An active barrier of this type already exists");
+            }
+            throw exception;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -97,6 +108,20 @@ public class StudentSupportService {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Student not found");
         }
+    }
+
+    private boolean isActiveBarrierUniqueViolation(
+            DataIntegrityViolationException exception) {
+        Throwable cause = exception;
+        while (cause != null) {
+            if (cause instanceof ConstraintViolationException violation
+                    && "uq_active_student_support_barrier".equals(
+                            violation.getConstraintName())) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 
     private BarrierResponse toResponse(SupportBarrier barrier) {
