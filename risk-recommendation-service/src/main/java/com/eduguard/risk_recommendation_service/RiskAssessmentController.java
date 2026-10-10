@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/risk")
+@CrossOrigin(origins = "http://localhost:8080")
 public class RiskAssessmentController {
 
     private final RestClient studentService;

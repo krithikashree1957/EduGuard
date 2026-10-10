@@ -44,9 +44,10 @@
                 <label for="classFilter">Class</label>
                 <select id="classFilter">
                     <option value="">All classes</option>
-                    <option value="10-A">10-A</option>
-                    <option value="10-B">10-B</option>
-                    <option value="11-A">11-A</option>
+                    <option value="CSE-A">CSE-A</option>
+                    <option value="CSE-B">CSE-B</option>
+                    <option value="ECE-A">ECE-A</option>
+                    <option value="ECE-B">ECE-B</option>
                 </select>
             </div>
 
@@ -54,8 +55,8 @@
                 <label for="termFilter">Academic term</label>
                 <select id="termFilter">
                     <option value="">All terms</option>
-                    <option value="Term 1">Term 1</option>
-                    <option value="Term 2">Term 2</option>
+                    <option value="2026-T1">2026-T1</option>
+                    <option value="2026-T2">2026-T2</option>
                 </select>
             </div>
 
@@ -73,10 +74,10 @@
                 <div>
                     <h2>Students requiring review</h2>
                     <p class="page-description">
-                        Illustrative mock records for frontend development.
+                        Live student records and explainable risk assessments.
                     </p>
                 </div>
-                <span id="studentCount">4 students</span>
+                <span id="studentCount">Loading students...</span>
             </div>
 
             <div class="table-wrapper">
@@ -92,43 +93,7 @@
                     </tr>
                     </thead>
 
-                    <tbody id="studentTableBody">
-                    <tr data-class="10-A" data-term="Term 1">
-                        <td>STU-001</td>
-                        <td>Student Alpha</td>
-                        <td>10-A</td>
-                        <td>Term 1</td>
-                        <td><span class="risk-badge high">High</span></td>
-                        <td><a class="text-link" href="/students/STU-001">View details</a></td>
-                    </tr>
-
-                    <tr data-class="10-B" data-term="Term 1">
-                        <td>STU-002</td>
-                        <td>Student Beta</td>
-                        <td>10-B</td>
-                        <td>Term 1</td>
-                        <td><span class="risk-badge medium">Medium</span></td>
-                        <td><a class="text-link" href="/students/STU-002">View details</a></td>
-                    </tr>
-
-                    <tr data-class="11-A" data-term="Term 2">
-                        <td>STU-003</td>
-                        <td>Student Gamma</td>
-                        <td>11-A</td>
-                        <td>Term 2</td>
-                        <td><span class="risk-badge low">Low</span></td>
-                        <td><a class="text-link" href="/students/STU-003">View details</a></td>
-                    </tr>
-
-                    <tr data-class="10-A" data-term="Term 2">
-                        <td>STU-004</td>
-                        <td>Student Delta</td>
-                        <td>10-A</td>
-                        <td>Term 2</td>
-                        <td><span class="risk-badge medium">Medium</span></td>
-                        <td><a class="text-link" href="/students/STU-004">View details</a></td>
-                    </tr>
-                    </tbody>
+                    <tbody id="studentTableBody"></tbody>
                 </table>
             </div>
 

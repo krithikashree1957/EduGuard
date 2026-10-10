@@ -1,7 +1,3 @@
-```javascript
-// ===== EduGuard Student List =====
-// Uses illustrative mock data from students.html.
-
 document.addEventListener("DOMContentLoaded", function () {
     const classFilter = document.getElementById("classFilter");
     const termFilter = document.getElementById("termFilter");
@@ -22,7 +18,85 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
-    const rows = Array.from(tableBody.querySelectorAll("tr"));
+    let rows = [];
+
+    async function loadStudents() {
+        studentCount.textContent = "Loading students...";
+        try {
+            const response = await fetch("/api/students");
+            if (!response.ok) {
+                throw new Error("Student service returned " + response.status);
+            }
+
+            const students = await response.json();
+            tableBody.replaceChildren();
+
+            for (const student of students) {
+                const row = document.createElement("tr");
+                row.dataset.class = student.className || "";
+                row.dataset.term = student.term || "";
+                row.innerHTML = `
+                    <td>${escapeHtml(student.studentCode)}</td>
+                    <td>${escapeHtml(student.studentCode)}</td>
+                    <td>${escapeHtml(student.className)}</td>
+                    <td>${escapeHtml(student.term)}</td>
+                    <td><span class="risk-badge">Not assessed</span></td>
+                    <td>
+                        <button class="text-link risk-button" type="button">Assess risk</button>
+                        <div class="risk-details"></div>
+                    </td>
+                `;
+                row.querySelector(".risk-button").addEventListener("click", function () {
+                    assessRisk(student.studentId, row);
+                });
+                tableBody.appendChild(row);
+            }
+
+            rows = Array.from(tableBody.querySelectorAll("tr"));
+            filterStudents();
+        } catch (error) {
+            studentCount.textContent = "Unable to load students";
+            emptyMessage.hidden = false;
+            emptyMessage.textContent =
+                "Student data is unavailable. Start the Student Data Service and verify PostgreSQL.";
+        }
+    }
+
+    async function assessRisk(studentId, row) {
+        const badge = row.querySelector(".risk-badge");
+        const button = row.querySelector(".risk-button");
+        badge.textContent = "Loading";
+        button.disabled = true;
+
+        try {
+            const response = await fetch("http://localhost:8081/api/risk/students/" + studentId);
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.detail || result.message || "Risk assessment failed");
+            }
+            badge.textContent = result.riskTier;
+            badge.className = "risk-badge " + result.riskTier.toLowerCase();
+            button.textContent = "Score " + result.riskScore;
+            row.querySelector(".risk-details").textContent =
+                result.contributingFactors.join(" ") + " " +
+                result.recommendedInterventions.join(" ");
+        } catch (error) {
+            badge.textContent = "Unavailable";
+            button.textContent = "Assessment unavailable";
+            button.title = error.message;
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
 
     function filterStudents() {
         const selectedClass = classFilter.value;
@@ -76,7 +150,5 @@ document.addEventListener("DOMContentLoaded", function () {
     termFilter.addEventListener("change", filterStudents);
     studentSearch.addEventListener("input", filterStudents);
 
-    // Set the correct initial count.
-    filterStudents();
+    loadStudents();
 });
-```
