@@ -350,3 +350,34 @@ database/migrations/V3__intervention_case_management.sql
 No automatic migration framework is configured. Review and apply V2 before V3, manually and in a controlled environment; neither migration has been applied to `eduguard_db` by this implementation. The application remains configured with `spring.jpa.hibernate.ddl-auto=validate`.
 
 Stage 4 does not call the risk service, create cases automatically from risk scores, send notifications, or modify the dashboard. Authentication and staff authorization are not enforced by the current application.
+
+## Stage 5 notification management
+
+Stage 5 adds an independent notification module under the Student Data Service. It supports persistent `EMAIL` and `IN_APP` notification requests, reusable allow-listed templates, idempotency keys, delivery status, safe delivery-attempt history, and in-app read tracking.
+
+### Notification endpoints
+
+```http
+POST  /api/notifications
+GET   /api/notifications?recipientReference=...
+GET   /api/notifications/{notificationId}
+PATCH /api/notifications/{notificationId}/read
+```
+
+The request accepts an opaque recipient reference, event type, channel, supported template ID, bounded string parameters, and an optional idempotency key. Repeating an idempotency key returns the existing notification instead of creating another record. Template parameters are substituted as plain text only; arbitrary template execution and HTML rendering are not supported.
+
+Email delivery defaults to safe mock mode:
+
+```properties
+eduguard.notifications.email-mode=mock
+```
+
+Mock email results are marked `MOCK_SIMULATED`, not as real SMTP delivery. Real SMTP mode requires environment-provided `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_SENDER` values and must be enabled explicitly with `EDUGUARD_NOTIFICATION_EMAIL_MODE=smtp`. Automated tests do not send email.
+
+The Stage 5 migration is:
+
+```text
+database/migrations/V4__notification_management.sql
+```
+
+Review and apply V2, V3, and V4 manually and in order in a controlled environment; no migration was applied to `eduguard_db`. Stage 5 does not modify the dashboard, call the risk service, depend on Stage 4 classes, or send automatic reminders. Authentication and recipient ownership are not enforced by the current application, so a supplied recipient reference does not prove access authorization.
