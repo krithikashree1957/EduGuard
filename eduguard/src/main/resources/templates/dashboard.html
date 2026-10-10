@@ -63,7 +63,7 @@
                 <article class="summary-card">
                     <p>Total Students</p>
                     <h2 id="totalStudents">120</h2>
-                    <span>Students in demo data</span>
+                    <span>Live student records</span>
                 </article>
 
                 <article class="summary-card risk-high">
@@ -90,9 +90,9 @@
                 <div class="section-header">
                     <div>
                         <h2>Risk Distribution</h2>
-                        <p>Illustrative distribution using demo values</p>
+                        <p>Distribution from available risk assessments</p>
                     </div>
-                    <span class="demo-badge">SAMPLE DATA</span>
+                    <span class="demo-badge">LIVE DATA</span>
                 </div>
 
                 <div class="risk-distribution">
@@ -100,11 +100,11 @@
                         <div class="distribution-label">
                             <span class="legend-dot high-dot"></span>
                             High Risk
-                            <strong>15%</strong>
+                            <strong id="highRiskPercent">0%</strong>
                         </div>
                         <div class="progress-track">
                             <div class="progress-fill high-fill"
-                                 style="width: 15%"></div>
+                                 id="highRiskBar" style="width: 0%"></div>
                         </div>
                     </div>
 
@@ -112,11 +112,11 @@
                         <div class="distribution-label">
                             <span class="legend-dot medium-dot"></span>
                             Medium Risk
-                            <strong>27%</strong>
+                            <strong id="mediumRiskPercent">0%</strong>
                         </div>
                         <div class="progress-track">
                             <div class="progress-fill medium-fill"
-                                 style="width: 27%"></div>
+                                 id="mediumRiskBar" style="width: 0%"></div>
                         </div>
                     </div>
 
@@ -124,11 +124,11 @@
                         <div class="distribution-label">
                             <span class="legend-dot low-dot"></span>
                             Low Risk
-                            <strong>58%</strong>
+                            <strong id="lowRiskPercent">0%</strong>
                         </div>
                         <div class="progress-track">
                             <div class="progress-fill low-fill"
-                                 style="width: 58%"></div>
+                                 id="lowRiskBar" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
@@ -139,7 +139,7 @@
                 <div class="section-header">
                     <div>
                         <h2>Students Requiring Attention</h2>
-                        <p>Example students for the frontend demonstration</p>
+                        <p>Students assessed by the risk service</p>
                     </div>
                 </div>
 
@@ -156,50 +156,11 @@
                             </tr>
                         </thead>
 
-                        <tbody>
-                            <tr>
-                                <td>STU001</td>
-                                <td><strong>Arun Kumar</strong></td>
-                                <td>Class 10 - A</td>
-                                <td><span class="risk-badge high-badge">High</span></td>
-                                <td>Low attendance</td>
-                                <td>Attendance follow-up</td>
-                            </tr>
-
-                            <tr>
-                                <td>STU002</td>
-                                <td><strong>Priya S</strong></td>
-                                <td>Class 10 - B</td>
-                                <td><span class="risk-badge medium-badge">Medium</span></td>
-                                <td>Declining assessment scores</td>
-                                <td>Academic support</td>
-                            </tr>
-
-                            <tr>
-                                <td>STU003</td>
-                                <td><strong>Kavin R</strong></td>
-                                <td>Class 9 - A</td>
-                                <td><span class="risk-badge high-badge">High</span></td>
-                                <td>Repeated absences</td>
-                                <td>Support meeting</td>
-                            </tr>
-
-                            <tr>
-                                <td>STU004</td>
-                                <td><strong>Meena D</strong></td>
-                                <td>Class 9 - B</td>
-                                <td><span class="risk-badge low-badge">Low</span></td>
-                                <td>No major concerns in demo</td>
-                                <td>Routine progress review</td>
-                            </tr>
-                        </tbody>
+                        <tbody id="dashboardStudents"></tbody>
                     </table>
                 </div>
 
-                <p class="demo-notice">
-                    All student names, counts, risk levels and factors above
-                    are simulated examples, not real student assessments.
-                </p>
+                <p class="demo-notice" id="dashboardStatus">Loading live assessments...</p>
             </section>
 
             <!-- Intervention Summary -->
@@ -238,5 +199,8 @@
 
         </main>
     </div>
-</body>
+
+    <script th:src="@{/js/dashboard.js}"></script>
+
+    </body>
 </html>
