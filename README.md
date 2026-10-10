@@ -1,491 +1,425 @@
-# EduGuard
-An enterprise student dropout risk and intervention management platform that identifies at-risk students using student performance, attendance, fee, and engagement data, with explainable risk scoring, targeted interventions, and cohort analytics using Java, Spring Boot, microservices, Thymeleaf, and PostgreSQL.
+# EduGuard 💚
 
-## Verified baseline
+### Every student who drops out has a story. What if we could understand that story before it's too late?
 
-EduGuard currently consists of two independent Spring Boot Maven services.
+A decline in attendance, falling grades, or reduced participation can sometimes signal that a student needs help. But what if educators could recognise those warning signs earlier, understand what might be contributing to them, and offer support before a student gives up?
 
-### Student Data Service
+**EduGuard is a student dropout risk assessment and intervention management platform developed for SustainAI2026 — Hackathon on “GreenOps: Enterprise AI using Spring Boot & Microservices.”**
 
-Location: `D:\Eduguard\eduguard`
+Our platform brings student information and performance indicators together, provides explainable risk assessments, suggests supportive interventions, and helps staff coordinate follow-ups.
 
-The Student Data Service:
+Our goal isn't to label students as risks. **It's to recognise when they might be at risk of being left behind.**
 
-- Serves the Thymeleaf dashboard and student page.
-- Provides student and performance REST APIs.
-- Reads student data with Spring Data JPA.
-- Connects to PostgreSQL.
+---
 
-It uses the default Spring Boot port `8080`.
+## 🌱 1. The Problem
 
-### Risk & Recommendation Service
+Educational institutions may notice student disengagement only after attendance or academic performance has declined significantly. Relevant information can be scattered across attendance records, assessment results, and engagement data, making it difficult to identify students who may need timely support.
 
-Location: `D:\Eduguard\risk-recommendation-service`
+EduGuard aims to bridge this gap by helping educators:
 
-The Risk & Recommendation Service:
+* Identify students who may need additional attention.
+* Understand the indicators contributing to a risk assessment.
+* Explore suitable academic, wellbeing, or financial-support options.
+* Coordinate interventions and track follow-ups.
+* Bring available student information into a unified view.
 
-- Provides student risk assessments.
-- Calls the Student Data Service over HTTP.
-- Retains the explainable weighted heuristic for backwards-compatible fields.
-- Trains a lightweight logistic-regression classifier once from bundled
-  synthetic examples and returns its probability, tier, fitted-feature
-  contributions, and supportive recommendations alongside the heuristic.
+The focus is on **early support, informed decisions, and student wellbeing**—not punishment or automated decisions about a student's future.
 
-It uses port `8081` and does not directly access PostgreSQL.
+## 💡 2. Our Solution
 
-### Frontend
+EduGuard combines student data management, risk assessment, a logistic regression proof of concept, supportive recommendations, intervention case management, and notifications.
 
-The Student Data Service serves the Thymeleaf frontend:
+The application has two Spring Boot microservices:
 
-- Dashboard: `http://localhost:8080/`
-- Student risk list: `http://localhost:8080/students`
+* **Student Data Service:** Manages student information, performance data, the web interface, and supporting workflows.
+* **Risk & Recommendation Service:** Calculates the original heuristic assessment, runs the logistic regression model when valid data is available, and returns explanations and recommendations.
 
-Frontend files are under `eduguard/src/main/resources`, including:
+The services communicate through REST APIs, and PostgreSQL provides persistent storage for the application.
 
-- `templates/dashboard.html`
-- `templates/student.html`
-- `static/js/dashboard.js`
-- `static/js/student.js`
-- `static/css/dashboard.css`
+### Key Features
 
-The frontend calls `/api/students` on the Student Data Service and uses the
-configured Risk Service URL (default `http://localhost:8081`).
+* **Student profiles:** Retrieve student records and available performance indicators.
+* **Risk assessment:** Combine rule-based scoring with an additional ML prediction.
+* **Explainable results:** Display contributing factors for staff review.
+* **Support recommendations:** Suggest mentoring, remedial support, counselling referral, or financial-support eligibility checks where appropriate.
+* **Intervention management:** Create, assign, update, and close cases, with activity and follow-up tracking.
+* **Notifications:** Manage notification records and in-app read tracking; email handling depends on configuration.
+* **External integration support:** Academic and wellbeing adapters support configured integration modes, with mock mode available for development.
 
-### Database
+---
 
-The Student Data Service uses PostgreSQL with this database URL:
+## 🧩 3. How EduGuard Works
 
-```text
-jdbc:postgresql://localhost:5432/eduguard_db
+1. The application retrieves a student's available academic and engagement indicators.
+2. The Risk & Recommendation Service calculates the existing heuristic risk score and tier.
+3. If all four required indicators are valid, the logistic regression model produces an additional prediction.
+4. The service returns the heuristic assessment, available ML output, contributing factors, and recommendations.
+5. The dashboard and student page display the results for review.
+6. Staff can use the intervention workflow to coordinate support and track follow-ups.
+
+**Our workflow:**
+
+`Student Data → Risk Assessment → Explanation → Suggested Support → Intervention Follow-up`
+
+## 🏗️ 4. System Architecture
+
+The following Mermaid diagram represents the implemented application flow, including the frontend, both microservices, PostgreSQL, the model, recommendations, notifications, and external integration adapters.
+
+```mermaid
+flowchart TD
+    U["Educator / Staff"] --> UI["Thymeleaf Web Interface<br/>Dashboard and Student Pages"]
+
+    UI -->|Student and performance requests| SDS["Student Data Service<br/>Spring Boot · Port 8080"]
+    SDS --> DB[("PostgreSQL<br/>Student and Workflow Data")]
+
+    SDS --> SP["Student Performance REST API"]
+    SP -->|Performance data over HTTP| RC["Risk & Recommendation Service<br/>Spring Boot · Port 8081"]
+
+    RC --> HC["Rule-Based Risk Assessment<br/>Weighted Indicators and Risk Tier"]
+    RC --> VALID{"All four ML indicators<br/>valid and available?"}
+
+    VALID -->|Yes| ML["Java Logistic Regression Model<br/>Trained on 80 Synthetic Examples"]
+    VALID -->|No| FALLBACK["ML Output Unavailable<br/>Retain Heuristic Assessment"]
+
+    ML --> PRED["Model Probability,<br/>Model Tier and Feature Contributions"]
+
+    HC --> REC["Recommendation Generator"]
+    PRED --> REC
+    FALLBACK --> REC
+
+    REC --> RESP["Risk API Response<br/>Heuristic + Available ML Output<br/>Factors and Recommendations"]
+    RESP --> UI
+
+    SDS --> CASE["Intervention Case Management<br/>Assignment, Activities and Follow-ups"]
+    SDS --> NOTIF["Notification Management<br/>In-App Records and Configurable Email"]
+    SDS --> EXT["Academic and Wellbeing<br/>Integration Adapters"]
+    EXT --> MOCK["Mock Provider Mode<br/>Default Development Configuration"]
+
+    CASE --> DB
+    NOTIF --> DB
 ```
 
-The application uses:
+### Architecture notes
+
+* The Student Data Service owns application data access.
+* The Risk & Recommendation Service retrieves performance data through REST; it does not directly query the Student Data Service's database.
+* The original heuristic assessment remains available when ML inference cannot run.
+* Logistic regression is implemented inside the Risk & Recommendation Service; it is not a separate ML microservice.
+* Academic and wellbeing integrations have mock-mode support. The diagram does not imply that live external providers are connected.
+* The diagram describes the intended application flow. Actual availability depends on correct database configuration, service URLs, and runtime configuration.
+
+---
+
+## 🤖 5. AI/ML: Explainable Logistic Regression
+
+EduGuard integrates a Java logistic regression model into its existing Risk & Recommendation Service. It adds a learned prediction and feature-based explanations without removing the original rule-based assessment.
+
+### Existing rule-based assessment
+
+The original heuristic assessment considers four indicators:
+
+* Attendance
+* Assessment performance
+* Participation
+* Assignment completion
+
+It calculates a weighted score, assigns a risk tier, and identifies contributing factors.
+
+### Logistic regression model
+
+**Implementation:** `LogisticRegressionRiskModel.java`
+
+**Training data:** `risk-recommendation-service/src/main/resources/ml/risk-training-data.csv`
+
+The model:
+
+* Uses four performance indicators as input features.
+* Trains on 80 synthetic examples.
+* Uses gradient descent to fit the logistic regression coefficients.
+* Estimates the probability of a synthetic support-need label.
+* Assigns a separate model risk tier.
+* Calculates feature contributions to help explain its output.
+
+The model is trained in Java when the Risk Service initializes. It does not require a separate ML service or external AI API to produce its prediction.
+
+### What does the model learn?
+
+The dataset contains a target label named `synthetic_support_need`. A row receives label `1` when at least two indicators fall below the following thresholds:
+
+| Indicator              | Threshold |
+| ---------------------- | --------: |
+| Attendance             | Below 75% |
+| Assessment performance | Below 60% |
+| Participation          | Below 40% |
+| Assignment completion  | Below 50% |
+
+Otherwise, the row receives label `0`.
+
+**Important:** These labels are generated from predefined thresholds. They are not based on observed student dropout outcomes.
+
+### Understanding the output
+
+The API preserves the original heuristic fields:
+
+* `riskScore`
+* `riskTier`
+* `indicators`
+* `contributingFactors`
+* `recommendedInterventions`
+
+It adds these ML-related fields:
+
+* `riskModel`
+* `modelOutcome`
+* `modelProbability`
+* `modelRiskTier`
+* `modelContributingFactors`
+* `modelNote`
+
+The heuristic tier and model tier are separate assessments. Model feature contributions are calculated from the fitted coefficients and the student's feature values relative to training-data means.
+
+These explanations describe how the model contributes to its prediction; they do not establish causation.
+
+### Handling missing data
+
+The model runs only when all four required indicators are available and valid. If data is missing or invalid, the ML result is marked unavailable while the original heuristic assessment remains available.
+
+### Responsible AI
+
+The model's probability is **not a validated real-world dropout probability**. Its real-world predictive accuracy, calibration, and fairness have not been established. EduGuard is a proof of concept intended to support human review, not replace educators' judgement or make consequential decisions automatically.
+
+---
+
+## 📋 6. SustainAI2026 Problem Statement Coverage
+
+The following table maps the hackathon's student-support and enterprise application requirements to EduGuard's implementation and identifies areas that require further development or verification.
+
+| Requirement                             | EduGuard implementation and status                                                                                                                                              |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Student profile management              | Student records and available performance data are retrieved through the Student Data Service.                                                                                  |
+| Attendance and grade history            | Attendance and assessment indicators are used in the student performance view and risk assessment.                                                                              |
+| Unified data integration                | Available attendance, assessment, and engagement indicators are combined through the performance API.                                                                           |
+| Socio-economic/support signals          | Support-request workflows and financial-support eligibility checks support student assistance. The platform should not be assumed to contain a complete socio-economic dataset. |
+| Dropout risk prediction                 | Rule-based risk scoring and a separate logistic regression prediction of a synthetic support-need label. Actual dropout prediction has not been validated.                      |
+| Risk tiers                              | The heuristic and ML model provide separate risk tiers.                                                                                                                         |
+| Risk-factor explanation                 | Heuristic contributing factors and model-specific feature contributions are returned for review.                                                                                |
+| Intervention recommendations            | The recommendation generator suggests supportive actions using available assessment information.                                                                                |
+| Mentoring and remedial support          | Supported as recommendation categories where implemented by the recommendation logic.                                                                                           |
+| Counselling referral                    | Supported as a possible recommendation category; real-world referral workflows depend on institutional procedures.                                                              |
+| Scholarship or financial support        | Financial-support request workflows and eligibility checks support follow-up. They do not guarantee funding or eligibility.                                                     |
+| Case management                         | Supports intervention case creation, assignment, updates, activities, and follow-up tracking.                                                                                   |
+| Cohort and early-trend analytics        | Student listing and available filters support browsing. Advanced cohort, class, subject, and longitudinal trend analytics require further verification or development.          |
+| Outcome and effectiveness dashboard     | Intervention records support tracking, but retention improvement or intervention effectiveness has not been demonstrated.                                                       |
+| Similar past cases                      | Case records can support future development of case-based suggestions. Automated similarity-based recommendations should not be claimed unless verified in the implementation.  |
+| Web interface                           | Thymeleaf dashboard and student pages display student information, risk output, explanations, and recommendations.                                                              |
+| Spring Boot REST APIs                   | Both services expose REST APIs.                                                                                                                                                 |
+| Minimum two microservices               | Student Data Service and Risk & Recommendation Service.                                                                                                                         |
+| Inter-service REST communication        | The Risk Service calls the Student Data Service to retrieve performance data.                                                                                                   |
+| Database integration                    | PostgreSQL, Spring Data JPA, and Hibernate support persistent application data.                                                                                                 |
+| Meaningful AI/ML                        | Java logistic regression, synthetic training examples, model probability, model tier, and feature contributions.                                                                |
+| End-to-end student-support flow         | Student performance retrieval, risk assessment, recommendations, and intervention management are connected. The complete workflow must be verified in the target environment.   |
+| Anonymised or simulated data            | The ML training dataset is synthetic. Demonstrations should use anonymised or simulated student records.                                                                        |
+| Explainable, non-discriminatory outputs | Contributing factors are provided for review. However, fairness has not been validated; further bias evaluation is required before real-world deployment.                       |
+
+EduGuard implements the core student risk-assessment and intervention workflow. Advanced analytics, real-world predictive validation, and intervention-effectiveness measurement remain important opportunities for improvement.
+
+---
+
+## 🖥️ 7. Application Screenshots
+
+Add screenshots captured from the running application to `docs/screenshots/`.
+
+### Dashboard
+
+![EduGuard dashboard](docs/screenshots/dashboard.png)
+
+### Risk Assessment and Explanation
+
+![Student risk assessment and contributing factors](docs/screenshots/risk-explanation.png)
+
+### Intervention Case Management
+
+![Intervention case management](docs/screenshots/intervention-case.png)
+
+*The paths above are placeholders until the corresponding screenshot files are added to the repository.*
+
+---
+
+## 🛠️ 8. Technology Stack
+
+| Component            | Technology                              |
+| -------------------- | --------------------------------------- |
+| Programming language | Java 21                                 |
+| Backend framework    | Spring Boot                             |
+| Architecture         | Two microservices                       |
+| Communication        | REST APIs / HTTP                        |
+| Database             | PostgreSQL                              |
+| Persistence          | Spring Data JPA and Hibernate           |
+| Frontend             | Thymeleaf, HTML, CSS, JavaScript        |
+| Machine learning     | Java logistic regression                |
+| Training algorithm   | Gradient descent                        |
+| Explainability       | Coefficient-based feature contributions |
+| Testing              | JUnit and Spring testing support        |
+| Build                | Maven Wrapper                           |
+
+---
+
+## 🚀 9. Running EduGuard Locally
+
+### Prerequisites
+
+* JDK 21
+* PostgreSQL
+* Git
+* PowerShell on Windows
+
+### Step 1: Clone the repository
+
+```powershell
+git clone https://github.com/krithikashree1957/EduGuard.git
+Set-Location "EduGuard"
+```
+
+### Step 2: Prepare PostgreSQL
+
+1. Create a database named `eduguard_db`.
+2. Review and execute `database/eduguard_setup.sql`.
+3. Review and apply the required SQL migration files in order.
+4. Configure the database username and password through environment variables.
+5. Ensure that the schema matches the application's JPA entity mappings.
+
+The Student Data Service uses configuration similar to:
 
 ```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/eduguard_db
+spring.datasource.username=postgres
+spring.datasource.password=${DB_PASSWORD}
 spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.open-in-view=false
 ```
 
-The database setup script is `database/eduguard_setup.sql`. It defines the `students`, `attendance`, `assessments`, and `engagement` tables and contains fictional local-development sample data. The script should not be imported automatically without confirming the target database.
+Set `DB_PASSWORD` in your local environment. Never commit real credentials to Git.
 
-## Existing REST APIs
+The current configuration does not automatically apply migrations through Flyway or Liquibase, so the database setup scripts must be applied manually.
 
-### List students
+### Step 3: Start the Student Data Service
 
-```http
-GET /api/students
+```powershell
+Set-Location "D:\Eduguard\eduguard"
+.\mvnw.cmd spring-boot:run
 ```
 
-Optional query parameters:
+Default port: `8080`.
 
-- `className`
-- `term`
+### Step 4: Start the Risk & Recommendation Service
 
-Examples:
+Open a second PowerShell window:
+
+```powershell
+Set-Location "D:\Eduguard\risk-recommendation-service"
+.\mvnw.cmd spring-boot:run
+```
+
+Default port: `8081`.
+
+Ensure the Risk Service points to the correct Student Data Service URL and that the database is available.
+
+### Step 5: Open the application
+
+* Dashboard: `http://localhost:8080/`
+* Student page: `http://localhost:8080/students`
+
+Example API endpoints:
 
 ```text
 GET http://localhost:8080/api/students
-GET http://localhost:8080/api/students?className=CSE-A
-GET http://localhost:8080/api/students?term=2026-T1
-GET http://localhost:8080/api/students?className=CSE-A&term=2026-T1
-```
-
-Implemented by `StudentController`, which calls `StudentRepository`.
-
-Runtime verification returned HTTP `200 OK` and 10 students with IDs 1 through 10.
-
-### Student performance
-
-```http
-GET /api/students/{studentId}/performance
-```
-
-Example:
-
-```text
-GET http://localhost:8080/api/students/1/performance
-```
-
-Implemented by `StudentPerformanceController`. It reads student details, attendance, assessments, and engagement using the corresponding Spring Data repositories.
-
-Runtime verification for student ID 1 returned HTTP `200 OK` with attendance, assessment, and engagement data. An unknown student returned HTTP `404 Not Found`.
-
-### Risk assessment
-
-```http
-GET /api/risk/students/{studentId}
-```
-
-Example:
-
-```text
-GET http://localhost:8081/api/risk/students/1
-```
-
-Implemented by `RiskAssessmentController`. It first calls:
-
-```http
 GET http://localhost:8080/api/students/{studentId}/performance
+GET http://localhost:8081/api/risk/students/{studentId}
 ```
 
-Runtime verification for student ID 1 returned HTTP `200 OK`, a risk score of `12.4`, the `LOW` tier, contributing factors, and a recommendation. The risk service successfully obtained data from the Student Data Service. An unknown student returned HTTP `404 Not Found`.
+Replace `{studentId}` with an ID returned by the student-list API. Refer to the current controllers for the exact supported routes.
 
-## Risk heuristic and synthetic ML proof of concept
+---
 
-The legacy `riskScore`, `riskTier`, `indicators`, and `contributingFactors`
-remain the weighted heuristic response. It is retained for compatibility; it
-is distinct from the logistic-regression prediction.
+## 🧪 10. Testing
 
-| Indicator | Weight |
-|---|---:|
-| Attendance | 40% |
-| Assessment average | 30% |
-| Participation | 15% |
-| Assignment completion | 15% |
-
-Values are normalized and constrained to 0–100. If some data is unavailable, the calculation uses the available weighted inputs.
-
-| Risk score | Tier |
-|---:|---|
-| 60 or higher | `HIGH` |
-| 35 to below 60 | `MEDIUM` |
-| Below 35 | `LOW` |
-
-The added `modelProbability` estimates the synthetic label
-`synthetic_support_need`, not real-world dropout. Training data is bundled at
-`risk-recommendation-service/src/main/resources/ml/risk-training-data.csv` and
-contains only synthetic rows. Its label is `1` when at least two available
-features are below the existing monitoring thresholds (attendance below 75%,
-assessment average below 60%, participation below 40%, or assignment
-completion below 50%); otherwise it is `0`. The current file has 80 unique
-rows, balanced between the two synthetic labels.
-
-The service fits a deterministic Java logistic-regression model once when the
-Risk & Recommendation Service starts. It uses full-batch gradient descent with
-a fixed learning rate and L2 regularization; no model dependency or external
-service is required. Features are the four percentage values
-already retrieved from the Student Data Service: attendance, mean assessment
-percentage, participation, and assignment completion. No missing values are
-imputed: if any feature is unavailable or outside 0–100, model fields are
-returned as unavailable while the existing partial-data heuristic response
-remains available.
-
-`modelRiskTier` uses `HIGH` at probability >= 0.60, `MEDIUM` at >= 0.35, and
-`LOW` below 0.35. `modelContributingFactors` reports each fitted coefficient
-and the coefficient-weighted feature difference from the synthetic training
-mean in log-odds units. This is a model explanation, not evidence of causation.
-Recommendations use positive model contributions to suggest supportive staff
-follow-up and continue to require human judgement.
-
-This model is only a proof of concept trained on a small synthetic dataset. It
-has not been validated on real student outcomes and its probabilities must not
-be interpreted as real dropout probabilities, causal effects, or grounds for
-disciplinary, exclusion, or other high-impact decisions. No real-world
-accuracy claim is made. No held-out metrics are reported: the rows are
-synthetic and their labels are generated directly from the threshold rule, so
-a holdout score would measure reproduction of that artificial rule rather
-than validated outcome prediction.
-
-## Build and test
-
-The services are independent Maven projects. Run commands from each service directory.
-
-### Student Data Service
+Run the Student Data Service tests:
 
 ```powershell
-cd D:\Eduguard\eduguard
-.\mvnw.cmd -B -DskipTests package
-.\mvnw.cmd -B test
+Set-Location "D:\Eduguard\eduguard"
+.\mvnw.cmd test
 ```
 
-### Risk & Recommendation Service
+Run the Risk & Recommendation Service tests:
 
 ```powershell
-cd D:\Eduguard\risk-recommendation-service
-.\mvnw.cmd -B -DskipTests package
-.\mvnw.cmd -B test
+Set-Location "D:\Eduguard\risk-recommendation-service"
+.\mvnw.cmd test
 ```
 
-Earlier baseline builds and context-only tests were run before the Stage 8
-ML changes. That historical result does not verify the current source tree.
-The Risk Service suite now includes context, heuristic calculation,
-recommendation, model training/prediction, and mocked inter-service HTTP
-tests. No browser-automation test framework is configured. Run the test
-commands above before release.
+Key risk-service test classes include:
 
-### Start the services manually
+* `LogisticRegressionRiskModelTest` — training, probability bounds, tier assignment, feature contributions, and validation.
+* `RiskAssessmentControllerTest` — controller behavior and heuristic fallback.
+* `RecommendationGeneratorTest` — recommendation behavior with ML integration.
+* `RiskAssessmentHttpIntegrationTest` — HTTP risk behavior and preservation of response fields.
+* `StudentPerformanceClientTest` — performance retrieval client behavior.
 
-Start the Student Data Service first because the Risk Service calls it:
+**Previously observed test result:** A Student Data Service test run reported 42 tests, zero assertion failures, and one error in `EduguardApplicationTests.contextLoads`. Hibernate could not obtain JDBC metadata to determine the database dialect. That run did not pass completely.
 
-```powershell
-cd D:\Eduguard\eduguard
-.\mvnw.cmd spring-boot:run
-```
+Rerun both suites after resolving the test database/configuration issue. Report only the latest verified results when presenting the project as fully tested.
 
-In a second terminal:
+---
 
-```powershell
-cd D:\Eduguard\risk-recommendation-service
-.\mvnw.cmd spring-boot:run
-```
+## 🔒 11. Privacy, Security, and Limitations
 
-## Verification evidence
+* Use anonymised or simulated student data for demonstrations.
+* The training dataset is synthetic, and its labels are threshold-derived.
+* The ML probability is not a validated real-world dropout probability.
+* Real-world accuracy, calibration, and fairness have not been established.
+* Feature contributions are explanatory model outputs, not proof of causation.
+* Human review is essential before any intervention or support decision.
+* Intervention tracking does not prove that retention has improved.
+* Real student records require appropriate privacy safeguards, authentication, authorization, and record-level access controls.
+* Mock integration mode does not establish that a real external provider was contacted or that an email was delivered.
+* Database migrations must be applied correctly before running the application.
 
-The verified baseline established the following:
+EduGuard must not be used as the sole basis for decisions affecting a student's education, financial assistance, or access to services.
 
-- PostgreSQL authentication and database access succeeded during the Student Data Service context test.
-- Hibernate initialized successfully and schema validation reported no errors.
-- Both application ports were reachable during runtime verification.
-- `GET /api/students` returned HTTP `200`.
-- The performance endpoint returned HTTP `200` for a student ID obtained from the real student-list response.
-- The risk endpoint returned HTTP `200`.
-- The Risk Service successfully called the Student Data Service.
-- The dashboard loaded and displayed 10 live student rows with risk results.
-- The student page loaded and its risk-assessment interaction worked.
-- Unknown student IDs returned HTTP `404`.
+---
 
-## Confirmed issues
+## 🌟 12. Future Enhancements
 
-- The student page displays the student code in both the “Student ID” and “Student” columns because no student-name field currently exists.
-- Browser-level dashboard behavior is not covered by an automated frontend test framework.
+* Add and verify authentication, staff roles, and record-level authorization.
+* Improve privacy controls, audit trails, and data governance.
+* Evaluate the model using appropriate, ethically sourced, representative data.
+* Measure predictive performance, calibration, and fairness.
+* Develop cohort and early-trend analytics.
+* Measure intervention effectiveness using suitable outcome data.
+* Expand automated end-to-end testing.
+* Configure and verify real academic and wellbeing integrations.
+* Improve monitoring, resilience, and scalability.
 
-## Potential issues
+---
 
-- The performance response changes shape when attendance or engagement data is missing.
-- Attendance and engagement repositories return `Optional`, but the SQL schema does not enforce one record per student.
-- No authentication or authorization implementation was found.
-- No visible timeout, retry, circuit breaker, or resilience policy exists for the inter-service call.
-- The dashboard makes one risk request per student, which may not scale efficiently for large cohorts.
-- Controller input validation is limited.
+## 👥 Team EduGuard
 
-## Existing functionality and future functionality
+**Created for SustainAI2026 — Hackathon on “GreenOps: Enterprise AI using Spring Boot & Microservices.”**
 
-### Existing and verified
+We built EduGuard to explore how enterprise application architecture and explainable AI can help educators recognise potential student-support needs and coordinate timely interventions.
 
-- Student listing and filtering by class and term.
-- Student performance retrieval.
-- Attendance, assessment, and engagement data retrieval.
-- Explainable heuristic risk assessment.
-- Risk-tier and recommendation display.
-- Thymeleaf dashboard and student risk list.
-- Internal REST communication between the services.
-- PostgreSQL-backed student data.
+### Team Members
 
-### Not implemented or not verified
+1. **Krithika Shree.K** — [GitHub](https://github.com/krithikashree1957)
+2. **Venikalaxmi.S** — [GitHub](https://github.com/venikalaxmisaravanan)
+3. **Nirmal Priya.S** — [GitHub](https://github.com/Nirmal-Priya)
 
-The following should not currently be described as existing features:
+---
 
-- Role-based authorization.
-- Intervention creation and tracking.
-- Recipient-specific notifications.
-- Email, SMS, or other external integrations.
-- Real-world validated dropout prediction, training data, or model evaluation.
-- Production deployment.
-- Complete analytics and cohort reporting.
-- Audit history.
-- User accounts or educator identity management.
+## 💚 Our Vision
 
-## Baseline limitations
+Every student deserves the opportunity to be heard before they decide to leave.
 
-This is a local verified baseline. It does not establish production readiness, security readiness, scalability, prediction accuracy, or complete intervention-management functionality. Behavior with large datasets, service failure, and duplicate performance records remains unverified.
+EduGuard brings student indicators, explainable assessments, and support workflows together to help educators recognise potential concerns and coordinate timely assistance.
 
-## Stage 2 support data extension
-
-Stage 2 adds a separate backend model for contextual student-support information without changing the existing student, performance, or risk APIs.
-
-### Support records
-
-The Student Data Service now models three separate historical record types:
-
-- `SupportBarrier`: student-reported educational barriers such as commuting difficulties or limited study resources.
-- `FinancialSupport`: minimal financial-support request information such as support type and workflow status.
-- `WellbeingRequest`: student-initiated requests for a wellbeing-related check-in or assistance.
-
-These records use foreign keys to `students`, timestamps, bounded text fields, and status/severity checks. Sensitive support records are not included in the existing student-list or performance responses. The current application has no authentication or role-based authorization, so these endpoints are not yet access-controlled.
-
-### Stage 2 endpoints
-
-```http
-GET  /api/students/{studentId}/support/barriers
-POST /api/students/{studentId}/support/barriers
-
-GET  /api/students/{studentId}/support/financial
-POST /api/students/{studentId}/support/financial
-
-GET  /api/students/{studentId}/support/wellbeing
-POST /api/students/{studentId}/support/wellbeing
-```
-
-POST requests validate required fields and allowed status/severity values. Unknown students return `404 Not Found`, invalid request bodies return `400 Bad Request`, and duplicate active barriers of the same type return `409 Conflict`.
-
-The existing weighted risk heuristic was not changed in Stage 2. Support data is contextual information for later human-reviewed workflows; it is not automatically treated as proof of dropout risk.
-
-### Database migration status
-
-The review-only migration script is:
-
-```text
-database/migrations/V2__student_support_data.sql
-```
-
-No migration framework is currently configured in the project. The script is prepared for review but has **not** been applied to `eduguard_db`. No live records or tables were modified.
-
-Before applying it, review the foreign keys, indexes, status checks, retention requirements, and authorization plan. The existing application context test uses `spring.jpa.hibernate.ddl-auto=none` for the test run because the new migration is intentionally unapplied; this test does not validate the new tables against the live database.
-
-### Stage 2 verification
-
-The Student Data Service completed:
-
-```text
-Tests run: 5
-Failures: 0
-Errors: 0
-Skipped: 0
-BUILD SUCCESS
-```
-
-This includes the existing context test and focused controller tests for successful creation, validation failures, and separate support collections. The Risk & Recommendation Service's existing context test also passed:
-
-```text
-Tests run: 1
-Failures: 0
-Errors: 0
-Skipped: 0
-BUILD SUCCESS
-```
-
-The new support endpoints were not runtime-tested against the live application because doing so would require applying the approved migration first, and the running services were not restarted.
-
-## Stage 4 intervention case management
-
-Stage 4 adds an independent intervention-case module to the Student Data Service. It stores only a student ID and does not copy student personal information.
-
-### Case endpoints
-
-```http
-POST  /api/interventions
-GET   /api/interventions
-GET   /api/interventions/{caseId}
-GET   /api/interventions/student/{studentId}
-PATCH /api/interventions/{caseId}
-GET   /api/interventions/{caseId}/activities
-GET   /api/interventions/follow-ups/due
-GET   /api/interventions/follow-ups/overdue
-```
-
-Case searches support pagination and filtering by student, status, priority, category, and assigned staff identifier. Results use stable `updatedAt` and `caseId` ordering. Case updates enforce the permitted status transitions and require a resolution summary before closing. Case activity history is append-only through the API and is returned read-only.
-
-The Stage 4 migration is:
-
-```text
-database/migrations/V3__intervention_case_management.sql
-```
-
-No automatic migration framework is configured. Review and apply V2 before V3, manually and in a controlled environment; neither migration has been applied to `eduguard_db` by this implementation. The application remains configured with `spring.jpa.hibernate.ddl-auto=validate`.
-
-Stage 4 does not call the risk service, create cases automatically from risk scores, send notifications, or modify the dashboard. Authentication and staff authorization are not enforced by the current application.
-
-## Stage 5 notification management
-
-Stage 5 adds an independent notification module under the Student Data Service. It supports persistent `EMAIL` and `IN_APP` notification requests, reusable allow-listed templates, idempotency keys, delivery status, safe delivery-attempt history, and in-app read tracking.
-
-### Notification endpoints
-
-```http
-POST  /api/notifications
-GET   /api/notifications?recipientReference=...
-GET   /api/notifications/{notificationId}
-PATCH /api/notifications/{notificationId}/read
-```
-
-The request accepts an opaque recipient reference, event type, channel, supported template ID, bounded string parameters, and an optional idempotency key. Repeating an idempotency key returns the existing notification instead of creating another record. Template parameters are substituted as plain text only; arbitrary template execution and HTML rendering are not supported.
-
-Email delivery defaults to safe mock mode:
-
-```properties
-eduguard.notifications.email-mode=mock
-```
-
-Mock email results are marked `MOCK_SIMULATED`, not as real SMTP delivery. Real SMTP mode requires environment-provided `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_SENDER` values and must be enabled explicitly with `EDUGUARD_NOTIFICATION_EMAIL_MODE=smtp`. Automated tests do not send email.
-
-The Stage 5 migration is:
-
-```text
-database/migrations/V4__notification_management.sql
-```
-
-Review and apply V2, V3, and V4 manually and in order in a controlled environment; no migration was applied to `eduguard_db`. Stage 5 does not modify the dashboard, call the risk service, depend on Stage 4 classes, or send automatic reminders. Authentication and recipient ownership are not enforced by the current application, so a supplied recipient reference does not prove access authorization.
-
-## Stage 8 security, tests, and integration audit
-
-### Services and runtime configuration
-
-The Student Data Service runs on port `8080` and requires PostgreSQL. Set
-`DB_PASSWORD` in the process environment; the repository does not provide a
-database-password fallback. Its default URL is
-`jdbc:postgresql://localhost:5432/eduguard_db`, and its current configured
-database username is `postgres`. Hibernate schema validation is enabled for
-normal application startup.
-
-Start the Student Data Service before the Risk & Recommendation Service. The
-risk service runs on port `8081` and fetches
-`/api/students/{studentId}/performance` over HTTP. Configure its downstream
-base URL with `EDUGUARD_STUDENT_SERVICE_BASE_URL`; the legacy
-`student.service.base-url` property remains a fallback. Configure the URL
-published to both frontend pages with `EDUGUARD_RISK_SERVICE_BASE_URL`.
-
-Notification email delivery defaults to `mock`, and academic/wellbeing
-integrations default to `mock`. Automated tests use mock delivery and mock
-provider clients; they do not send email or contact real providers. External
-provider URLs and API keys are configured with `EDUGUARD_ACADEMIC_BASE_URL`,
-`EDUGUARD_ACADEMIC_API_KEY`, `EDUGUARD_WELLBEING_BASE_URL`, and
-`EDUGUARD_WELLBEING_API_KEY`. See [INTEGRATIONS.md](./eduguard/INTEGRATIONS.md)
-for provider contracts and per-provider timeouts. The optional
-`EDUGUARD_NOTIFICATION_MAX_ATTEMPTS` setting defaults to `3`; SMTP credentials
-are required only when explicitly switching email delivery to SMTP mode, as
-documented in Stage 5 above.
-
-### Database setup
-
-Review `database/eduguard_setup.sql` for the base student/performance schema
-and fictional sample data. Review and apply V2, V3, then V4 manually, only
-after confirming the target database and migration contents. The application
-does not run migrations automatically; tests and documentation in this
-repository did not apply migrations or alter database records.
-
-### Test execution and current coverage
-
-Run each Maven project independently:
-
-```powershell
-cd D:\Eduguard\eduguard
-.\mvnw.cmd -B test
-
-cd D:\Eduguard\risk-recommendation-service
-.\mvnw.cmd -B test
-```
-
-The Student Data Service context-load test requires a working PostgreSQL
-connection even though it disables Hibernate schema validation for that test.
-The risk service has no database dependency. Controller/service tests use
-mocks, and external-integration tests use local mock clients.
-
-The current test coverage includes student/performance response contracts and
-missing-data behavior, risk calculation and student-service HTTP handling,
-support validation and duplicate barriers, intervention creation/status and
-follow-up behavior, notification mock delivery/idempotency, external-resource
-query/health/failure behavior, and dashboard page routing. There is no
-configured frontend/browser automation framework. Database-backed workflows
-and full browser-to-database end-to-end runs remain dependent on a configured
-PostgreSQL instance and manually applied migrations.
-
-### Security limitations
-
-No authentication or authorization is implemented. Student performance,
-support, intervention, notification, and risk endpoints do not verify an
-authenticated user or record ownership. In particular, notification reads
-accept a recipient reference without proving recipient ownership. Do not
-expose these services to untrusted networks or use them with real student
-records until identity integration and server-side role/record authorization
-are implemented and verified. The risk-service CORS allow-list is not an
-authorization control.
+**Because behind every warning sign, there is a student—and behind every student, there is a story worth listening to.**
