@@ -3,6 +3,10 @@ package com.eduguard.eduguard.intervention;
 import com.eduguard.eduguard.student.StudentRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.*;
@@ -46,6 +50,34 @@ class InterventionServiceTest {
         assertEquals(7L, result.caseId());
         verify(cases).save(any(InterventionCase.class));
         verify(activities).save(any(CaseActivity.class));
+    }
+
+    @Test
+    void searchesWithoutOptionalFilters() {
+        Pageable pageable = PageRequest.of(0, 20,
+                Sort.by(Sort.Direction.DESC, "updatedAt", "caseId"));
+        when(cases.findAll(any(org.springframework.data.jpa.domain.Specification.class),
+                any(Pageable.class))).thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        assertEquals(0, service.search(null, null, null, null, null, pageable)
+                .getTotalElements());
+
+        verify(cases).findAll(any(org.springframework.data.jpa.domain.Specification.class),
+                eq(pageable));
+    }
+
+    @Test
+    void searchesWithCombinedOptionalFilters() {
+        Pageable pageable = PageRequest.of(1, 5,
+                Sort.by(Sort.Direction.DESC, "updatedAt", "caseId"));
+        when(cases.findAll(any(org.springframework.data.jpa.domain.Specification.class),
+                any(Pageable.class))).thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        service.search(17L, CaseStatus.OPEN, CasePriority.HIGH,
+                CaseCategory.ACADEMIC, "staff-1", pageable);
+
+        verify(cases).findAll(any(org.springframework.data.jpa.domain.Specification.class),
+                eq(pageable));
     }
 
     @Test

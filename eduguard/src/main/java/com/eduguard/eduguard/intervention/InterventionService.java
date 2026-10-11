@@ -46,7 +46,7 @@ public class InterventionService {
                                      CasePriority priority, CaseCategory category,
                                      String assignedStaffId, Pageable pageable) {
         Specification<InterventionCase> specification =
-                Specification.where((Specification<InterventionCase>) null);
+                (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
         if (studentId != null) specification = specification.and((root, q, cb) ->
                 cb.equal(root.get("studentId"), studentId));
         if (status != null) specification = specification.and((root, q, cb) ->
