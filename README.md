@@ -225,25 +225,35 @@ The following table maps the hackathon's student-support and enterprise applicat
 EduGuard implements the core student risk-assessment and intervention workflow. Advanced analytics, real-world predictive validation, and intervention-effectiveness measurement remain important opportunities for improvement.
 
 ---
-
 ## 🖥️ 7. Application Screenshots
 
-Add screenshots captured from the running application to `docs/screenshots/`.
+EduGuard provides a dashboard for monitoring student risk assessments and a
+student risk list that helps educators review individual students, understand
+their assessment results, and identify potential support needs.
 
-### Dashboard
+### Dashboard Overview
 
-![EduGuard dashboard](docs/screenshots/dashboard.png)
+The dashboard displays the total number of students and the distribution
+of model risk tiers, helping educators understand the current synthetic
+support-need estimates across the available student records.
 
-### Risk Assessment and Explanation
+![EduGuard Dashboard Overview](eduguard/dashboard.jpeg)
 
-![Student risk assessment and contributing factors](docs/screenshots/risk-explanation.png)
+### Student Risk List and Recommendations
 
-### Intervention Case Management
+The Student Risk List displays individual student records, their available
+risk tiers, and model predictions when the required performance data is
+available. Educators can review the model probability, contributing factors,
+and suggested supportive actions.
 
-![Intervention case management](docs/screenshots/intervention-case.png)
+Students without sufficient assessment data are displayed as **Not assessed**.
 
-*The paths above are placeholders until the corresponding screenshot files are added to the repository.*
+![EduGuard Student Risk List and Recommendations](eduguard/risk-recommendation.jpeg)
 
+> **Note:** The logistic regression model is a proof of concept trained on
+> synthetic support-need labels. Its probabilities are not validated real-world
+> dropout probabilities. Assessments are intended to support human review,
+> not automated decisions about students.
 ---
 
 ## 🛠️ 8. Technology Stack
