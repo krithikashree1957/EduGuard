@@ -248,7 +248,7 @@ and suggested supportive actions.
 
 Students without sufficient assessment data are displayed as **Not assessed**.
 
-![EduGuard Student Risk List and Recommendations](eduguard/risk-recommendation.jpeg)
+![EduGuard Student Risk List and Recommendations](eduguard/risk-explanation.jpeg)
 
 > **Note:** The logistic regression model is a proof of concept trained on
 > synthetic support-need labels. Its probabilities are not validated real-world
