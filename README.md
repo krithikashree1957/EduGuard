@@ -227,33 +227,30 @@ EduGuard implements the core student risk-assessment and intervention workflow. 
 ---
 ## 🖥️ 7. Application Screenshots
 
-EduGuard provides a dashboard for monitoring student risk assessments and a
-student risk list that helps educators review individual students, understand
-their assessment results, and identify potential support needs.
+EduGuard provides a dashboard for monitoring student risk assessments, a student risk list for reviewing individual students, and intervention tracking for monitoring support cases and follow-ups.
 
 ### Dashboard Overview
 
-The dashboard displays the total number of students and the distribution
-of model risk tiers, helping educators understand the current synthetic
-support-need estimates across the available student records.
+The dashboard displays the total number of students and the distribution of model risk tiers, helping educators understand the current synthetic support-need estimates across the available student records.
 
-![EduGuard Dashboard Overview](eduguard/dashboard.jpeg)
+![EduGuard Dashboard Overview](screenshots/dashboard.jpeg)
 
 ### Student Risk List and Recommendations
 
-The Student Risk List displays individual student records, their available
-risk tiers, and model predictions when the required performance data is
-available. Educators can review the model probability, contributing factors,
-and suggested supportive actions.
+The Student Risk List displays individual student records, their available risk tiers, and model predictions when the required performance data is available. Educators can review the model probability, contributing factors, and suggested supportive actions.
 
 Students without sufficient assessment data are displayed as **Not assessed**.
 
-![EduGuard Student Risk List and Recommendations](eduguard/risk-explanation.jpeg)
+![EduGuard Student Risk List and Recommendations](screenshots/risk-explanation.jpeg)
 
-> **Note:** The logistic regression model is a proof of concept trained on
-> synthetic support-need labels. Its probabilities are not validated real-world
-> dropout probabilities. Assessments are intended to support human review,
-> not automated decisions about students.
+### Intervention and Follow-up Tracking
+
+The intervention tracking section displays saved intervention cases, including the student code, category, priority, status, and follow-up date. Educators can review open cases and monitor upcoming follow-ups.
+
+![EduGuard Intervention and Follow-up Tracking](screenshots/intervention-tracking..jpeg)
+
+> **Note:** The logistic regression model is a proof of concept trained on synthetic support-need labels. Its probabilities are not validated real-world dropout probabilities. Assessments are intended to support human review, not automated decisions about students.
+
 ---
 
 ## 🛠️ 8. Technology Stack
@@ -437,3 +434,4 @@ Every student deserves the opportunity to be heard before they decide to leave.
 EduGuard brings student indicators, explainable assessments, and support workflows together to help educators recognise potential concerns and coordinate timely assistance.
 
 **Because behind every warning sign, there is a student—and behind every student, there is a story worth listening to.**
+
